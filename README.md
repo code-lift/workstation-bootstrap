@@ -135,7 +135,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 
 Windows apply mode asks for confirmation before changing the machine. Use `-Yes` only for trusted automation after reviewing the dry-run output.
 
-Successful package and app installs are recorded under `~/.workstation/logs/install-success.tsv`. On later runs, the installer uses that log together with a live install check; an item is skipped only when it was previously completed and is still installed.
+Successful package and app installs are recorded under `~/.workstation/logs/install.tsv`. On later runs, the installer uses that log together with a live install check; an item is skipped only when it was previously completed and is still installed.
 
 ## Optional items
 
