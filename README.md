@@ -12,7 +12,7 @@ Public bootstrap installer for a development workstation. It installs a practica
 
 ## Supported platforms
 
-- Windows 11 with PowerShell and optional WSL2 Ubuntu.
+- Windows 11 with Windows PowerShell 5.1 and WSL2 Ubuntu.
 - macOS.
 - Linux.
 - WSL2 Ubuntu.
@@ -33,28 +33,45 @@ Apply on macOS, Linux, or WSL:
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
 ```
 
-Dry-run on Windows PowerShell:
+Dry-run on Windows PowerShell 5.1:
 
 ```powershell
-irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 | iex
+cd $HOME
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "$HOME\install.ps1"
+Unblock-File "$HOME\install.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
 ## Windows setup
 
-You can start from regular PowerShell. Windows Terminal is useful, but it is not required.
+Start from Windows PowerShell 5.1. Windows Terminal is useful, but it is not required.
 
 Open PowerShell and run a dry-run first:
 
 ```powershell
-irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 | iex
+cd $HOME
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "$HOME\install.ps1"
+Unblock-File "$HOME\install.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
-To apply changes, download the installer and run it explicitly:
+The Windows installer checks Windows-native packages, WSL optional features, `wsl.exe`, and Ubuntu. In apply mode it can enable the WSL Windows features when PowerShell is running as Administrator.
+
+To apply changes, download the installer and run it explicitly from Windows PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile install.ps1
-pwsh -NoProfile -File .\install.ps1 -Apply
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
+
+If WSL features are enabled during apply, restart Windows and run the same command again:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
+```
+
+When WSL is ready and Ubuntu is not installed, the installer runs `wsl --install -d Ubuntu`. Ubuntu may ask you to create a Linux username and password on first launch.
 
 After the Windows host bootstrap finishes, open Ubuntu in WSL and run the Linux bootstrap there:
 
@@ -104,7 +121,7 @@ curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/mai
 Use `-Apply` on Windows:
 
 ```powershell
-pwsh -NoProfile -File .\install.ps1 -Apply
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
 ## Optional items
@@ -121,8 +138,8 @@ curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/mai
 Windows:
 
 ```powershell
-pwsh -NoProfile -File .\install.ps1 -Optional windows_productivity
-pwsh -NoProfile -File .\install.ps1 -OptionalItems microsoft_powertoys
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Optional windows_productivity
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -OptionalItems microsoft_powertoys
 ```
 
 Add the apply option only after the dry-run output is correct.
@@ -168,7 +185,7 @@ Capture Windows output:
 
 ```powershell
 Start-Transcript -Path .\workstation-bootstrap.log
-pwsh -NoProfile -File .\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 Stop-Transcript
 ```
 
@@ -180,7 +197,7 @@ WORKSTATION_BUNDLE_URL=https://example.com/workstation-bootstrap.zip bash instal
 
 ```powershell
 $env:WORKSTATION_BUNDLE_URL = "https://example.com/workstation-bootstrap.zip"
-pwsh -NoProfile -File .\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
 If the checksum file is not next to a custom bundle, set it explicitly:
@@ -194,7 +211,7 @@ bash install.sh
 ```powershell
 $env:WORKSTATION_BUNDLE_URL = "https://example.com/workstation-bootstrap.zip"
 $env:WORKSTATION_SHA256_URL = "https://example.com/SHA256SUMS"
-pwsh -NoProfile -File .\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
 ## Updating

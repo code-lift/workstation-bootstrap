@@ -18,21 +18,29 @@ $Sha256Url = if ($env:WORKSTATION_SHA256_URL) { $env:WORKSTATION_SHA256_URL } el
 function Show-Usage {
     Write-Output @"
 Usage:
-  pwsh -NoProfile -File install.ps1 [-Apply] [-Optional <category,...>] [-OptionalItems <id,...>] [-Help]
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Optional <category,...>] [-OptionalItems <id,...>] [-Help]
 
 Public usage:
-  irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 | iex
-  irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile install.ps1
-  pwsh -NoProfile -File .\install.ps1 -Apply
+  cd `$HOME
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+  irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "`$HOME\install.ps1"
+  Unblock-File "`$HOME\install.ps1"
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1"
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" -Apply
 
 Default:
-  Dry-run. Downloads the public bootstrap bundle and runs the Windows bootstrap without making changes.
+  Dry-run. Downloads the public bootstrap bundle, checks Windows host packages, WSL features, and Ubuntu readiness without making changes.
 
 Options:
   -Apply          Apply changes.
   -Optional       Limit optional item candidates by category.
   -OptionalItems  Select optional item ids directly.
   -Help           Show this help.
+
+Windows WSL setup:
+  Run from Windows PowerShell 5.1 first.
+  -Apply can enable WSL Windows features from an elevated PowerShell session.
+  If a reboot is required, restart Windows and run the same command again.
 
 Environment:
   WORKSTATION_BUNDLE_URL  Override the bootstrap bundle zip URL.
