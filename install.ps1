@@ -44,8 +44,8 @@ Default:
 
 Options:
   -Apply          Apply changes.
-  -Optional       Limit optional item candidates by category.
-  -OptionalItems  Select optional item ids directly.
+  -Optional       Limit the interactive optional app list by category.
+  -OptionalItems  Advanced: select optional item ids directly.
   -Help           Show this help.
 
 Windows WSL setup:

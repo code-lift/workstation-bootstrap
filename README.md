@@ -74,7 +74,7 @@ To apply changes, download the installer and run it explicitly from Windows Powe
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-If WSL features are enabled during apply, restart Windows and run the same command again:
+Restart is not always required. If WSL features are already enabled, the installer continues without a restart. If WSL features are enabled during apply, restart Windows and run the same command again:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
@@ -135,7 +135,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 
 ## Optional items
 
-Optional groups can be selected by category or item id.
+Optional apps are selected interactively in a terminal list. In non-interactive automation, item ids can be passed directly.
 
 macOS, Linux, or WSL:
 
@@ -147,8 +147,8 @@ curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/mai
 Windows:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Optional windows_productivity
-powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -OptionalItems microsoft_powertoys
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
 Add the apply option only after the dry-run output is correct.
