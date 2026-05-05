@@ -15,6 +15,15 @@ $DefaultSha256Url = "https://github.com/code-lift/workstation-bootstrap/releases
 $BundleUrl = if ($env:WORKSTATION_BUNDLE_URL) { $env:WORKSTATION_BUNDLE_URL } else { $DefaultBundleUrl }
 $Sha256Url = if ($env:WORKSTATION_SHA256_URL) { $env:WORKSTATION_SHA256_URL } else { "" }
 
+try {
+    chcp.com 65001 *> $null
+    $Utf8Encoding = New-Object System.Text.UTF8Encoding
+    [Console]::OutputEncoding = $Utf8Encoding
+    $OutputEncoding = $Utf8Encoding
+} catch {
+    Write-Warning "UTF-8 console setup failed. Continuing with the current console encoding."
+}
+
 function Show-Usage {
     Write-Output @"
 Usage:
