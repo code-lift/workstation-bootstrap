@@ -16,7 +16,9 @@ $BundleUrl = if ($env:WORKSTATION_BUNDLE_URL) { $env:WORKSTATION_BUNDLE_URL } el
 $Sha256Url = if ($env:WORKSTATION_SHA256_URL) { $env:WORKSTATION_SHA256_URL } else { "" }
 
 try {
-    chcp.com 65001 *> $null
+    if (Get-Command chcp.com -ErrorAction SilentlyContinue) {
+        chcp.com 65001 *> $null
+    }
     $Utf8Encoding = New-Object System.Text.UTF8Encoding
     [Console]::OutputEncoding = $Utf8Encoding
     $OutputEncoding = $Utf8Encoding
@@ -117,7 +119,7 @@ function Test-BundleChecksum {
     )
 
     if ([string]::IsNullOrWhiteSpace($SumsSource)) {
-        Write-Warning "SHA256SUMS URL 없음. checksum 검증을 건너뜁니다."
+        Write-Warning "SHA256SUMS URL is not configured. Skipping checksum verification."
         return
     }
 
@@ -125,9 +127,9 @@ function Test-BundleChecksum {
         Save-Bundle -Source $SumsSource -Destination $SumsPath
     } catch {
         if ($BundleUrl -eq $DefaultBundleUrl -or -not [string]::IsNullOrWhiteSpace($env:WORKSTATION_SHA256_URL)) {
-            throw "SHA256SUMS 다운로드 실패: $SumsSource"
+            throw "Failed to download SHA256SUMS: $SumsSource"
         }
-        Write-Warning "SHA256SUMS 다운로드 실패. custom bundle checksum 검증을 건너뜁니다: $SumsSource"
+        Write-Warning "Failed to download SHA256SUMS. Skipping checksum verification for custom bundle: $SumsSource"
         return
     }
 
@@ -139,12 +141,12 @@ function Test-BundleChecksum {
         }
     }
     if (-not $Expected) {
-        throw "SHA256SUMS에 workstation-bootstrap.zip 항목이 없습니다."
+        throw "SHA256SUMS does not contain workstation-bootstrap.zip."
     }
 
     $Actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $ZipPath).Hash.ToLowerInvariant()
     if ($Actual -ne $Expected) {
-        throw "checksum 불일치: workstation-bootstrap.zip expected=$Expected actual=$Actual"
+        throw "Checksum mismatch: workstation-bootstrap.zip expected=$Expected actual=$Actual"
     }
 }
 
@@ -160,7 +162,7 @@ try {
 
     $BootstrapPath = Join-Path $TempDir "workstation-bootstrap/bootstrap/windows.ps1"
     if (-not (Test-Path $BootstrapPath)) {
-        throw "bootstrap 파일 없음: workstation-bootstrap/bootstrap/windows.ps1"
+        throw "Bootstrap file not found: workstation-bootstrap/bootstrap/windows.ps1"
     }
 
     $BootstrapArgs = @()

@@ -45,7 +45,7 @@ download_file() {
     return
   fi
 
-  echo "curl 또는 wget이 필요하다." >&2
+  echo "curl or wget is required." >&2
   return 1
 }
 
@@ -83,22 +83,22 @@ verify_checksum() {
   local actual
 
   if [[ -z "$sums_url" ]]; then
-    echo "[warn] SHA256SUMS URL 없음. checksum 검증을 건너뛴다." >&2
+    echo "[warn] SHA256SUMS URL is not configured. Skipping checksum verification." >&2
     return
   fi
 
   if ! download_file "$sums_url" "$sums_path"; then
     if [[ "$BUNDLE_URL" == "$DEFAULT_BUNDLE_URL" || -n "${WORKSTATION_SHA256_URL:-}" ]]; then
-      echo "SHA256SUMS 다운로드 실패: $sums_url" >&2
+      echo "Failed to download SHA256SUMS: $sums_url" >&2
       return 1
     fi
-    echo "[warn] SHA256SUMS 다운로드 실패. custom bundle checksum 검증을 건너뛴다: $sums_url" >&2
+    echo "[warn] Failed to download SHA256SUMS. Skipping checksum verification for custom bundle: $sums_url" >&2
     return
   fi
 
   expected="$(awk '$2 == "workstation-bootstrap.zip" { print $1; exit }' "$sums_path")"
   if [[ -z "$expected" ]]; then
-    echo "SHA256SUMS에 workstation-bootstrap.zip 항목이 없다." >&2
+    echo "SHA256SUMS does not contain workstation-bootstrap.zip." >&2
     return 1
   fi
 
@@ -107,12 +107,12 @@ verify_checksum() {
   elif command -v shasum >/dev/null 2>&1; then
     actual="$(shasum -a 256 "$zip_path" | awk '{ print $1 }')"
   else
-    echo "sha256sum 또는 shasum이 필요하다." >&2
+    echo "sha256sum or shasum is required." >&2
     return 1
   fi
 
   if [[ "$actual" != "$expected" ]]; then
-    echo "checksum 불일치: workstation-bootstrap.zip" >&2
+    echo "Checksum mismatch: workstation-bootstrap.zip" >&2
     echo "expected: $expected" >&2
     echo "actual:   $actual" >&2
     return 1
@@ -132,7 +132,7 @@ detect_bootstrap() {
       fi
       ;;
     *)
-      echo "지원하지 않는 OS: $(uname -s)" >&2
+      echo "Unsupported OS: $(uname -s)" >&2
       return 1
       ;;
   esac
@@ -157,7 +157,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if ! command -v unzip >/dev/null 2>&1; then
-  echo "unzip이 필요하다." >&2
+  echo "unzip is required." >&2
   exit 1
 fi
 
@@ -175,7 +175,7 @@ bootstrap_rel="$(detect_bootstrap)"
 bootstrap_path="$bundle_root/$bootstrap_rel"
 
 if [[ ! -f "$bootstrap_path" ]]; then
-  echo "bootstrap 파일 없음: $bootstrap_rel" >&2
+  echo "Bootstrap file not found: $bootstrap_rel" >&2
   exit 1
 fi
 

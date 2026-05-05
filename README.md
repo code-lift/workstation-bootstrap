@@ -232,7 +232,3 @@ curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/mai
 - Secrets are never generated or synchronized by the installer.
 - The default bundle URL points to the latest GitHub Release asset for this public repository.
 - The installer verifies `workstation-bootstrap.zip` against `SHA256SUMS` when the checksum file is available.
-
-## Korean Quick Start
-
-기본 실행은 dry-run입니다. 실제 설치는 `--apply` 또는 `-Apply`를 붙여 실행하세요.
