@@ -133,6 +133,8 @@ Use `-Apply` on Windows:
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
+Windows apply mode asks for confirmation before changing the machine. Use `-Yes` only for trusted automation after reviewing the dry-run output.
+
 ## Optional items
 
 Optional apps are selected interactively in a terminal list. In non-interactive automation, item ids can be passed directly.

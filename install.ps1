@@ -1,5 +1,6 @@
 param(
     [switch]$Apply,
+    [switch]$Yes,
     [string]$Optional = "",
     [string]$OptionalItems = "",
     [switch]$Help,
@@ -29,7 +30,7 @@ try {
 function Show-Usage {
     Write-Output @"
 Usage:
-  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Optional <category,...>] [-OptionalItems <id,...>] [-Help]
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Yes] [-Optional <category,...>] [-OptionalItems <id,...>] [-Help]
 
 Public usage:
   cd `$HOME
@@ -44,6 +45,7 @@ Default:
 
 Options:
   -Apply          Apply changes.
+  -Yes            Skip the apply confirmation prompt for automation.
   -Optional       Limit the interactive optional app list by category.
   -OptionalItems  Advanced: select optional item ids directly.
   -Help           Show this help.
@@ -167,6 +169,7 @@ try {
 
     $BootstrapArgs = @()
     if ($Apply) { $BootstrapArgs += "-Apply" }
+    if ($Yes) { $BootstrapArgs += "-Yes" }
     if (-not [string]::IsNullOrWhiteSpace($Optional)) { $BootstrapArgs += @("-Optional", $Optional) }
     if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) { $BootstrapArgs += @("-OptionalItems", $OptionalItems) }
     if ($RemainingArgs) { $BootstrapArgs += $RemainingArgs }
