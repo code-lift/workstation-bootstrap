@@ -67,6 +67,29 @@ if ($Help) {
     exit 0
 }
 
+$ParsedRemainingArgs = @($RemainingArgs)
+for ($ArgIndex = 0; $ArgIndex -lt $ParsedRemainingArgs.Count; $ArgIndex++) {
+    $Arg = $ParsedRemainingArgs[$ArgIndex]
+    if ($Arg -in @("-Apply", "--apply")) {
+        $Apply = $true
+        continue
+    }
+    if ($Arg -in @("-Yes", "--yes")) {
+        $Yes = $true
+        continue
+    }
+    if ($Arg -in @("-Optional", "--optional") -and $ArgIndex + 1 -lt $ParsedRemainingArgs.Count) {
+        $ArgIndex += 1
+        $Optional = $ParsedRemainingArgs[$ArgIndex]
+        continue
+    }
+    if ($Arg -in @("-OptionalItems", "--optional-items") -and $ArgIndex + 1 -lt $ParsedRemainingArgs.Count) {
+        $ArgIndex += 1
+        $OptionalItems = $ParsedRemainingArgs[$ArgIndex]
+        continue
+    }
+}
+
 function Save-Bundle {
     param(
         [string]$Source,
@@ -167,14 +190,14 @@ try {
         throw "Bootstrap file not found: workstation-bootstrap/bootstrap/windows.ps1"
     }
 
-    $BootstrapArgs = @()
-    if ($Apply) { $BootstrapArgs += "-Apply" }
-    if ($Yes) { $BootstrapArgs += "-Yes" }
-    if (-not [string]::IsNullOrWhiteSpace($Optional)) { $BootstrapArgs += @("-Optional", $Optional) }
-    if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) { $BootstrapArgs += @("-OptionalItems", $OptionalItems) }
-    if ($RemainingArgs) { $BootstrapArgs += $RemainingArgs }
+    $BootstrapParams = @{}
+    if ($Apply) { $BootstrapParams["Apply"] = $true }
+    if ($Yes) { $BootstrapParams["Yes"] = $true }
+    if (-not [string]::IsNullOrWhiteSpace($Optional)) { $BootstrapParams["Optional"] = $Optional }
+    if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) { $BootstrapParams["OptionalItems"] = $OptionalItems }
 
-    & $BootstrapPath @BootstrapArgs
+    Write-Output ("Installer mode: {0}" -f $(if ($Apply) { "apply" } else { "dry-run" }))
+    & $BootstrapPath @BootstrapParams
 } finally {
     if (Test-Path $TempDir) {
         Remove-Item -Recurse -Force $TempDir
