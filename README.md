@@ -59,6 +59,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 
 The Windows installer checks Windows-native packages, WSL optional features, `wsl.exe`, and Ubuntu. In apply mode it can enable the WSL Windows features when PowerShell is running as Administrator.
 
+Windows output uses these labels:
+
+- `[ok]` means the item is already ready.
+- `[todo]` means the installer will change it when you run `-Apply`.
+- `[next]` means a later step is required, usually after WSL or Ubuntu is ready.
+- `[warn]` means the installer could not check or use something in the current shell.
+
+The Windows step installs only Windows host tools such as Windows Terminal, Git for Windows, GitHub CLI, and WSL/Ubuntu readiness. The main command line development tools are installed later inside Ubuntu by the WSL bootstrap.
+
 To apply changes, download the installer and run it explicitly from Windows PowerShell:
 
 ```powershell
