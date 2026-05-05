@@ -196,7 +196,7 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($Optional)) { $BootstrapParams["Optional"] = $Optional }
     if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) { $BootstrapParams["OptionalItems"] = $OptionalItems }
 
-    Write-Output ("Installer mode: {0}" -f $(if ($Apply) { "apply" } else { "dry-run" }))
+    Write-Output ("Bootstrap mode: {0}" -f $(if ($Apply) { "apply" } else { "dry-run" }))
     & $BootstrapPath @BootstrapParams
 } finally {
     if (Test-Path $TempDir) {
