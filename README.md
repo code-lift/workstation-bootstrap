@@ -1,43 +1,42 @@
 # workstation-bootstrap
 
-Public bootstrap installer for a development workstation. It installs a practical baseline for Windows, WSL/Linux, and macOS, then leaves account login and personal secrets to you.
+Public setup installer for a development workstation. It installs a practical baseline for Windows, WSL Ubuntu, Linux, and macOS, then leaves account login and private credentials to you.
 
 ## What it does
 
 - Installs core command line tools and package manager entries.
-- Applies selected dotfiles for zsh, tmux, git, and yazi.
-- Installs AI coding CLIs where they are listed in the bootstrap bundle.
-- Supports optional package groups when you choose them.
-- Runs as a dry-run by default. Nothing is installed unless you pass the apply option.
+- Applies selected terminal settings for zsh, tmux, git, search, file preview, and yazi.
+- Installs AI coding tools where they are listed in the setup bundle.
+- Shows optional apps in an interactive list and installs only the items you select.
+- Runs as a preview by default. Nothing is installed unless you pass the apply option.
 
 ## Supported platforms
 
-- Windows 11 with Windows PowerShell 5.1 and WSL2 Ubuntu.
+- Windows 11 with Windows PowerShell 5.1 and WSL Ubuntu.
 - macOS.
 - Linux.
-- WSL2 Ubuntu.
+- WSL Ubuntu.
 
-Windows uses two layers: the Windows host bootstrap installs Windows-native tools and prepares WSL, while the WSL bootstrap configures the Linux development environment inside Ubuntu.
+Windows uses two layers: the Windows setup installs Windows apps and prepares WSL Ubuntu, while the WSL setup configures the Linux development environment inside WSL Ubuntu.
 
 ## Quick start
 
-Dry-run on macOS, Linux, or WSL:
+Preview on macOS, Linux, or WSL Ubuntu:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
 ```
 
-Apply on macOS, Linux, or WSL:
+Apply on macOS, Linux, or WSL Ubuntu:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
 ```
 
-Dry-run on Windows PowerShell 5.1:
+Preview on Windows PowerShell 5.1:
 
 ```powershell
 cd $HOME
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "$HOME\install.ps1"
 Unblock-File "$HOME\install.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
@@ -47,26 +46,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 
 Start from Windows PowerShell 5.1. Windows Terminal is useful, but it is not required.
 
-Open PowerShell and run a dry-run first:
+Open PowerShell and run a preview first:
 
 ```powershell
 cd $HOME
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "$HOME\install.ps1"
 Unblock-File "$HOME\install.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
-The Windows installer checks Windows-native packages, WSL optional features, `wsl.exe`, and Ubuntu. In apply mode it can enable the WSL Windows features when PowerShell is running as Administrator.
+The Windows installer checks Windows apps, WSL support, and WSL Ubuntu. In apply mode it can enable WSL support when PowerShell is running as Administrator.
 
 Windows output uses these labels:
 
 - `[ok]` means the item is already ready.
-- `[todo]` means the installer will change it when you run `-Apply`.
-- `[next]` means a later step is required, usually after WSL or Ubuntu is ready.
+- `[todo]` means the installer will change it when you apply.
+- `[next]` means a later step is required, usually after Windows restart or WSL Ubuntu is ready.
 - `[warn]` means the installer could not check or use something in the current shell.
 
-The Windows step installs only Windows host tools such as Windows Terminal, Git for Windows, GitHub CLI, and WSL/Ubuntu readiness. The main command line development tools are installed later inside Ubuntu by the WSL bootstrap.
+The Windows step installs only Windows apps such as Windows Terminal, Git for Windows, GitHub CLI, and WSL Ubuntu readiness. The main command line development tools are installed later inside WSL Ubuntu.
 
 To apply changes, download the installer and run it explicitly from Windows PowerShell:
 
@@ -74,15 +72,15 @@ To apply changes, download the installer and run it explicitly from Windows Powe
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-Restart is not always required. If WSL features are already enabled, the installer continues without a restart. If WSL features are enabled during apply, restart Windows and run the same command again:
+Restart is not always required. If WSL support is already enabled, the installer continues without a restart. If WSL support is enabled during apply, restart Windows and run the same command again:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-When WSL is ready and Ubuntu is not installed, the installer runs `wsl --install -d Ubuntu`. Ubuntu may ask you to create a Linux username and password on first launch.
+When WSL support is ready and WSL Ubuntu is not installed, the installer starts the WSL Ubuntu installation. WSL Ubuntu may ask you to create a Linux account on first launch.
 
-After the Windows host bootstrap finishes, open Ubuntu in WSL and run the Linux bootstrap there:
+After the Windows setup finishes, open WSL Ubuntu and run the Linux setup there:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
@@ -91,7 +89,7 @@ curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/mai
 
 ## macOS setup
 
-Run the dry-run first:
+Run the preview first:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
@@ -103,7 +101,7 @@ Apply when the plan looks correct:
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
 ```
 
-## WSL/Linux setup
+## Ubuntu/Linux setup
 
 Run this inside your Linux shell:
 
@@ -117,11 +115,11 @@ Apply when ready:
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
 ```
 
-## Dry-run vs apply
+## Preview vs apply
 
-The default mode is dry-run. It prints the install plan and avoids changing machine state.
+The default mode is preview. It prints the setup plan and avoids changing machine state.
 
-Use `--apply` on macOS, Linux, or WSL:
+Use `--apply` on macOS, Linux, or WSL Ubuntu:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
@@ -133,7 +131,7 @@ Use `-Apply` on Windows:
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-Windows apply mode asks for confirmation before changing the machine. Use `-Yes` only for trusted automation after reviewing the dry-run output.
+Windows apply mode asks for confirmation before changing the machine. Use `-Yes` only for trusted automation after reviewing the preview output.
 
 Successful package and app installs are recorded under `~/.workstation/logs/install.tsv`. On later runs, the installer uses that log together with a live install check; an item is skipped only when it was previously completed and is still installed.
 
@@ -141,12 +139,14 @@ Successful package and app installs are recorded under `~/.workstation/logs/inst
 
 Optional apps are selected interactively in a terminal list. In non-interactive automation, item ids can be passed directly.
 
-macOS, Linux, or WSL:
+macOS, Linux, or WSL Ubuntu:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --optional container
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --optional-items docker_desktop
 ```
+
+`--optional` limits the list by category. It does not install a whole category by itself. In preview mode, selected optional items are saved under `~/.workstation/state/<os>-optional.txt`; apply mode shows that saved selection again and lets you add or remove items before the final confirmation.
 
 Windows:
 
@@ -155,15 +155,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-Add the apply option only after the dry-run output is correct.
+Add the apply option only after the preview output is correct.
 
 ## Post-install verification
 
-macOS, Linux, or WSL:
+macOS, Linux, or WSL Ubuntu:
 
 ```sh
 git --version
-chezmoi --version
 mise --version
 node --version
 tmux -V
@@ -187,6 +186,19 @@ AI CLIs are installed as tools only. Sign in after installation using each tool'
 The installer does not create, copy, or sync tokens, API keys, credentials, or session files.
 
 ## Troubleshooting and logs
+
+If Windows blocks the downloaded script, run this in the same PowerShell window and try again:
+
+```powershell
+Unblock-File "$HOME\install.ps1"
+```
+
+If your PowerShell policy still blocks the script, use a process-only bypass for the current window:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
+```
 
 Capture macOS, Linux, or WSL output:
 
@@ -231,7 +243,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 
 Run the installer again. It downloads the latest public release bundle by default.
 
-Use dry-run first, then apply:
+Use preview first, then apply:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
@@ -242,6 +254,6 @@ curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/mai
 
 - Review the installer before applying it.
 - The bundle contains plain source files. There is no source obfuscation or encryption.
-- Secrets are never generated or synchronized by the installer.
+- Private credentials are never generated or synchronized by the installer.
 - The default bundle URL points to the latest GitHub Release asset for this public repository.
 - The installer verifies `workstation-bootstrap.zip` against `SHA256SUMS` when the checksum file is available.

@@ -5,27 +5,27 @@ DEFAULT_BUNDLE_URL="https://github.com/code-lift/workstation-bootstrap/releases/
 DEFAULT_SHA256_URL="https://github.com/code-lift/workstation-bootstrap/releases/latest/download/SHA256SUMS"
 BUNDLE_URL="${WORKSTATION_BUNDLE_URL:-$DEFAULT_BUNDLE_URL}"
 SHA256_URL="${WORKSTATION_SHA256_URL:-}"
-apply=false
 bootstrap_args=()
 
 usage() {
   cat <<'USAGE'
 Usage:
-  install.sh [--apply] [bootstrap options...] [--help]
+  install.sh [--apply] [--yes] [setup options...] [--help]
 
 Public usage:
   curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
   curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
 
 Default:
-  Dry-run. Downloads the public bootstrap bundle and runs the OS bootstrap without making changes.
+  Preview mode. Downloads the setup bundle and shows what will happen without changing this computer.
 
 Options:
-  --apply                 Apply changes.
+  --apply                 Apply the selected setup.
+  --yes                   Pass through automation confirmation.
   --help                  Show this help.
 
 Environment:
-  WORKSTATION_BUNDLE_URL  Override the bootstrap bundle zip URL.
+  WORKSTATION_BUNDLE_URL  Override the setup bundle zip URL.
   WORKSTATION_SHA256_URL  Override the SHA256SUMS URL.
 
 USAGE
@@ -83,22 +83,22 @@ verify_checksum() {
   local actual
 
   if [[ -z "$sums_url" ]]; then
-    echo "[warn] SHA256SUMS URL is not configured. Skipping checksum verification." >&2
+    echo "[warn] Checksum file is not configured. Skipping download verification." >&2
     return
   fi
 
   if ! download_file "$sums_url" "$sums_path"; then
     if [[ "$BUNDLE_URL" == "$DEFAULT_BUNDLE_URL" || -n "${WORKSTATION_SHA256_URL:-}" ]]; then
-      echo "Failed to download SHA256SUMS: $sums_url" >&2
+      echo "Failed to download checksum file." >&2
       return 1
     fi
-    echo "[warn] Failed to download SHA256SUMS. Skipping checksum verification for custom bundle: $sums_url" >&2
+    echo "[warn] Failed to download checksum file. Skipping verification for custom bundle." >&2
     return
   fi
 
   expected="$(awk '$2 == "workstation-bootstrap.zip" { print $1; exit }' "$sums_path")"
   if [[ -z "$expected" ]]; then
-    echo "SHA256SUMS does not contain workstation-bootstrap.zip." >&2
+    echo "Checksum file does not include the setup bundle." >&2
     return 1
   fi
 
@@ -112,9 +112,7 @@ verify_checksum() {
   fi
 
   if [[ "$actual" != "$expected" ]]; then
-    echo "Checksum mismatch: workstation-bootstrap.zip" >&2
-    echo "expected: $expected" >&2
-    echo "actual:   $actual" >&2
+    echo "Setup bundle verification failed." >&2
     return 1
   fi
 }
@@ -141,7 +139,6 @@ detect_bootstrap() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --apply)
-      apply=true
       bootstrap_args+=("--apply")
       shift
       ;;
@@ -175,14 +172,14 @@ bootstrap_rel="$(detect_bootstrap)"
 bootstrap_path="$bundle_root/$bootstrap_rel"
 
 if [[ ! -f "$bootstrap_path" ]]; then
-  echo "Bootstrap file not found: $bootstrap_rel" >&2
+  echo "Setup file was not found in the downloaded bundle." >&2
   exit 1
 fi
 
-if "$apply"; then
-  echo "mode: apply"
+if [[ -t 0 ]]; then
+  bash "$bootstrap_path" "${bootstrap_args[@]}"
+elif { : </dev/tty; } 2>/dev/null; then
+  bash "$bootstrap_path" "${bootstrap_args[@]}" </dev/tty
 else
-  echo "mode: dry-run"
+  bash "$bootstrap_path" "${bootstrap_args[@]}"
 fi
-
-bash "$bootstrap_path" "${bootstrap_args[@]}"

@@ -34,29 +34,28 @@ Usage:
 
 Public usage:
   cd `$HOME
-  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
   irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "`$HOME\install.ps1"
   Unblock-File "`$HOME\install.ps1"
   powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1"
   powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" -Apply
 
 Default:
-  Dry-run. Downloads the public bootstrap bundle, checks Windows host packages, WSL features, and Ubuntu readiness without making changes.
+  Preview mode. Downloads the setup bundle and shows what will happen without changing this computer.
 
 Options:
-  -Apply          Apply changes.
+  -Apply          Apply the selected setup.
   -Yes            Skip the apply confirmation prompt for automation.
-  -Optional       Limit the interactive optional app list by category.
-  -OptionalItems  Advanced: select optional item ids directly.
+  -Optional       Limit the optional app list by category.
+  -OptionalItems  Advanced: select optional app ids directly.
   -Help           Show this help.
 
-Windows WSL setup:
+WSL Ubuntu setup:
   Run from Windows PowerShell 5.1 first.
-  -Apply can enable WSL Windows features from an elevated PowerShell session.
+  -Apply can enable WSL support from an elevated PowerShell session.
   If a reboot is required, restart Windows and run the same command again.
 
 Environment:
-  WORKSTATION_BUNDLE_URL  Override the bootstrap bundle zip URL.
+  WORKSTATION_BUNDLE_URL  Override the setup bundle zip URL.
   WORKSTATION_SHA256_URL  Override the SHA256SUMS URL.
 
 "@
@@ -144,7 +143,7 @@ function Test-BundleChecksum {
     )
 
     if ([string]::IsNullOrWhiteSpace($SumsSource)) {
-        Write-Warning "SHA256SUMS URL is not configured. Skipping checksum verification."
+        Write-Warning "Checksum file is not configured. Skipping download verification."
         return
     }
 
@@ -152,9 +151,9 @@ function Test-BundleChecksum {
         Save-Bundle -Source $SumsSource -Destination $SumsPath
     } catch {
         if ($BundleUrl -eq $DefaultBundleUrl -or -not [string]::IsNullOrWhiteSpace($env:WORKSTATION_SHA256_URL)) {
-            throw "Failed to download SHA256SUMS: $SumsSource"
+            throw "Failed to download checksum file."
         }
-        Write-Warning "Failed to download SHA256SUMS. Skipping checksum verification for custom bundle: $SumsSource"
+        Write-Warning "Failed to download checksum file. Skipping verification for custom bundle."
         return
     }
 
@@ -166,12 +165,12 @@ function Test-BundleChecksum {
         }
     }
     if (-not $Expected) {
-        throw "SHA256SUMS does not contain workstation-bootstrap.zip."
+        throw "Checksum file does not include the setup bundle."
     }
 
     $Actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $ZipPath).Hash.ToLowerInvariant()
     if ($Actual -ne $Expected) {
-        throw "Checksum mismatch: workstation-bootstrap.zip expected=$Expected actual=$Actual"
+        throw "Setup bundle verification failed."
     }
 }
 
@@ -187,7 +186,7 @@ try {
 
     $BootstrapPath = Join-Path $TempDir "workstation-bootstrap/bootstrap/windows.ps1"
     if (-not (Test-Path $BootstrapPath)) {
-        throw "Bootstrap file not found: workstation-bootstrap/bootstrap/windows.ps1"
+        throw "Windows setup file was not found in the downloaded bundle."
     }
 
     $BootstrapParams = @{}
@@ -196,7 +195,6 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($Optional)) { $BootstrapParams["Optional"] = $Optional }
     if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) { $BootstrapParams["OptionalItems"] = $OptionalItems }
 
-    Write-Output ("Bootstrap mode: {0}" -f $(if ($Apply) { "apply" } else { "dry-run" }))
     & $BootstrapPath @BootstrapParams
 } finally {
     if (Test-Path $TempDir) {
