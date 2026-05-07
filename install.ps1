@@ -66,8 +66,15 @@ if ($Help) {
     exit 0
 }
 
+function Get-ItemCount {
+    param([object]$Value)
+    if ($null -eq $Value) { return 0 }
+    return @($Value).Count
+}
+
 $ParsedRemainingArgs = @($RemainingArgs)
-for ($ArgIndex = 0; $ArgIndex -lt $ParsedRemainingArgs.Count; $ArgIndex++) {
+$ParsedRemainingArgCount = Get-ItemCount -Value $ParsedRemainingArgs
+for ($ArgIndex = 0; $ArgIndex -lt $ParsedRemainingArgCount; $ArgIndex++) {
     $Arg = $ParsedRemainingArgs[$ArgIndex]
     if ($Arg -in @("-Apply", "--apply")) {
         $Apply = $true
@@ -77,12 +84,12 @@ for ($ArgIndex = 0; $ArgIndex -lt $ParsedRemainingArgs.Count; $ArgIndex++) {
         $Yes = $true
         continue
     }
-    if ($Arg -in @("-Optional", "--optional") -and $ArgIndex + 1 -lt $ParsedRemainingArgs.Count) {
+    if ($Arg -in @("-Optional", "--optional") -and $ArgIndex + 1 -lt $ParsedRemainingArgCount) {
         $ArgIndex += 1
         $Optional = $ParsedRemainingArgs[$ArgIndex]
         continue
     }
-    if ($Arg -in @("-OptionalItems", "--optional-items") -and $ArgIndex + 1 -lt $ParsedRemainingArgs.Count) {
+    if ($Arg -in @("-OptionalItems", "--optional-items") -and $ArgIndex + 1 -lt $ParsedRemainingArgCount) {
         $ArgIndex += 1
         $OptionalItems = $ParsedRemainingArgs[$ArgIndex]
         continue
