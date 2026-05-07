@@ -24,7 +24,7 @@ Windows uses separate layers. The default Windows setup installs Windows apps on
 
 | Area | Item | macOS | WSL Ubuntu | Linux | Windows |
 | --- | --- | --- | --- | --- | --- |
-| Setup guide | workstation-help | Core | Core | Core | - |
+| Setup guide | wst | Core | Core | Core | - |
 | Shell | zsh | Core | Core | Core | - |
 | Terminal sessions | tmux | Core | Core | Core | - |
 | Terminal file manager | yazi | Core | Core | Core | - |
@@ -67,8 +67,8 @@ These commands are installed or enabled by the core setup on macOS, WSL Ubuntu, 
 
 | Command | What to use it for |
 | --- | --- |
-| `workstation-help` | Show the core command guide after setup. |
-| `workstation-help check` | Check whether the key terminal commands are available. |
+| `wst --help` | Show the core command guide after setup. |
+| `wst doctor` | Check whether key terminal commands are available. |
 | `tmux` | Keep terminal sessions and panes alive while coding. |
 | `y` | Open yazi and return to the directory you selected. |
 | `yazi` | Browse files from the terminal. |
@@ -225,7 +225,7 @@ Successful package and app installs are recorded under `~/.workstation/logs/inst
 
 Apply mode ends with a final installation check. It re-checks the installed packages, command-line tools, language runtimes, terminal settings, and selected optional apps. Items that are ready are printed with `[ok]`; anything still missing is printed with `[warn]`. When verification passes, it also prints the next commands to run.
 
-After setup, run `workstation-help` any time to see the command guide again. Run `workstation-help check` to check key terminal commands from a new shell.
+After setup, run `wst --help` any time to see the command guide again. Run `wst doctor` to check key terminal commands from a new shell.
 
 ## Optional items
 
