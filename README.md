@@ -78,7 +78,7 @@ Restart is not always required. If WSL support is already enabled, the installer
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-When WSL support is ready and WSL Ubuntu is not installed, the installer starts the WSL Ubuntu installation. WSL Ubuntu may ask you to create a Linux account on first launch.
+When WSL support is ready and WSL Ubuntu is not installed, the installer installs WSL Ubuntu first. It then opens an Ubuntu window so you can complete Ubuntu user setup. Return to the PowerShell window after Ubuntu shows a shell prompt, then answer `y` to continue.
 
 After the Windows setup finishes, open WSL Ubuntu and run the Linux setup there:
 
@@ -176,6 +176,7 @@ Windows PowerShell:
 winget --version
 git --version
 wsl --status
+wsl -d Ubuntu -- sh -lc 'echo ready'
 pwsh --version
 ```
 
