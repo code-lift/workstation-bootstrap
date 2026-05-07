@@ -1,6 +1,7 @@
 param(
     [switch]$Apply,
     [switch]$Yes,
+    [switch]$Wsl,
     [string]$Optional = "",
     [string]$OptionalItems = "",
     [switch]$Help,
@@ -30,7 +31,7 @@ try {
 function Show-Usage {
     Write-Output @"
 Usage:
-  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Yes] [-Optional <category,...>] [-OptionalItems <id,...>] [-Help]
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Yes] [-Wsl] [-Optional <category,...>] [-OptionalItems <id,...>] [-Help]
 
 Public usage:
   cd `$HOME
@@ -45,14 +46,14 @@ Default:
 Options:
   -Apply          Apply the selected setup.
   -Yes            Skip the apply confirmation prompt for automation.
+  -Wsl            Prepare WSL Ubuntu instead of Windows apps.
   -Optional       Limit the optional app list by category.
   -OptionalItems  Advanced: select optional app ids directly.
   -Help           Show this help.
 
 WSL Ubuntu setup:
-  Run from Windows PowerShell 5.1 first.
-  -Apply opens Administrator PowerShell when WSL support needs elevated changes.
-  If a reboot is required, restart Windows and run the same command again.
+  Use -Wsl when this computer will run the Linux development setup through WSL Ubuntu.
+  If a reboot is required, restart Windows and run the same -Wsl command again.
 
 Environment:
   WORKSTATION_BUNDLE_URL  Override the setup bundle zip URL.
@@ -84,6 +85,10 @@ for ($ArgIndex = 0; $ArgIndex -lt $ParsedRemainingArgCount; $ArgIndex++) {
         $Yes = $true
         continue
     }
+    if ($Arg -in @("-Wsl", "--wsl", "-WithWsl", "--with-wsl")) {
+        $Wsl = $true
+        continue
+    }
     if ($Arg -in @("-Optional", "--optional") -and $ArgIndex + 1 -lt $ParsedRemainingArgCount) {
         $ArgIndex += 1
         $Optional = $ParsedRemainingArgs[$ArgIndex]
@@ -112,7 +117,7 @@ function Quote-PowerShellLiteral {
 }
 
 function Start-ElevatedApply {
-    if (-not $Apply -or (Test-Administrator)) {
+    if (-not $Apply -or -not $Wsl -or (Test-Administrator)) {
         return
     }
 
@@ -120,6 +125,7 @@ function Start-ElevatedApply {
     if ($Yes) {
         $Command += " -Yes"
     }
+    $Command += " -Wsl"
     if (-not [string]::IsNullOrWhiteSpace($Optional)) {
         $Command += " -Optional " + (Quote-PowerShellLiteral -Value $Optional)
     }
@@ -128,7 +134,7 @@ function Start-ElevatedApply {
     }
 
     $EncodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Command))
-    Write-Output "[next] Opening Administrator PowerShell for Windows setup."
+    Write-Output "[next] Opening Administrator PowerShell for WSL Ubuntu setup."
     Write-Output "[next] Continue in the new Administrator PowerShell window."
     Start-Process powershell -Verb RunAs -ArgumentList @(
         "-NoExit",
@@ -246,6 +252,7 @@ try {
     $BootstrapParams = @{}
     if ($Apply) { $BootstrapParams["Apply"] = $true }
     if ($Yes) { $BootstrapParams["Yes"] = $true }
+    if ($Wsl) { $BootstrapParams["Wsl"] = $true }
     if (-not [string]::IsNullOrWhiteSpace($Optional)) { $BootstrapParams["Optional"] = $Optional }
     if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) { $BootstrapParams["OptionalItems"] = $OptionalItems }
 

@@ -12,12 +12,12 @@ Public setup installer for a development workstation. It installs a practical ba
 
 ## Supported platforms
 
-- Windows 11 with Windows PowerShell 5.1 and WSL Ubuntu.
+- Windows 11 with Windows PowerShell 5.1.
 - macOS.
 - Linux.
 - WSL Ubuntu.
 
-Windows uses two layers: the Windows setup installs Windows apps and prepares WSL Ubuntu, while the WSL setup configures the Linux development environment inside WSL Ubuntu.
+Windows uses separate layers. The default Windows setup installs Windows apps only. The optional WSL Ubuntu setup prepares Ubuntu for the Linux development environment.
 
 ## Quick start
 
@@ -55,16 +55,18 @@ Unblock-File "$HOME\install.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
-The Windows installer checks Windows apps, WSL support, and WSL Ubuntu. In apply mode it opens Administrator PowerShell when elevated changes are needed.
+The default Windows installer checks and installs Windows apps only.
 
 Windows output uses these labels:
 
 - `[ok]` means the item is already ready.
 - `[todo]` means the installer will change it when you apply.
-- `[next]` means a later step is required, usually after Windows restart or WSL Ubuntu is ready.
+- `[next]` means a later step is required.
 - `[warn]` means the installer could not check or use something in the current shell.
 
-The Windows step installs only Windows apps such as Windows Terminal, Git for Windows, GitHub CLI, and WSL Ubuntu readiness. The main command line development tools are installed later inside WSL Ubuntu.
+The Windows step installs Windows Terminal by default. Other Windows apps, including Git for Windows and GitHub CLI, are shown as optional items and installed only when selected.
+
+Claude Desktop and Codex are also available in the optional Windows app list.
 
 To apply changes, download the installer and run it explicitly from Windows PowerShell:
 
@@ -72,15 +74,20 @@ To apply changes, download the installer and run it explicitly from Windows Powe
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
-Restart is not always required. If WSL support is already enabled, the installer continues without a restart. If WSL support is enabled during apply, restart Windows and run the same command again:
+The default Windows setup does not require WSL Ubuntu.
+
+For Linux development on Windows, prepare WSL Ubuntu separately:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Wsl
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Wsl -Apply
 ```
 
-When WSL support is ready and WSL Ubuntu is not installed, the installer installs WSL Ubuntu first. It then opens an Ubuntu window so you can complete Ubuntu user setup. Return to the PowerShell window after Ubuntu shows a shell prompt, then answer `y` to continue.
+Restart is not always required. If WSL support is already enabled, the WSL setup continues without a restart. If WSL support is enabled during apply, restart Windows and run the same WSL command again.
 
-After the Windows setup finishes, open WSL Ubuntu and run the Linux setup there:
+When WSL support is ready and WSL Ubuntu is not installed, the WSL setup installs WSL Ubuntu first. It then opens an Ubuntu window so you can complete Ubuntu user setup. Return to the PowerShell window after Ubuntu shows a shell prompt, then answer `y` to continue.
+
+After WSL Ubuntu setup finishes, open WSL Ubuntu and run the Linux setup there:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
@@ -174,10 +181,16 @@ Windows PowerShell:
 
 ```powershell
 winget --version
+winget list --id Microsoft.WindowsTerminal --exact
+```
+
+Optional Windows checks:
+
+```powershell
 git --version
-wsl --status
-wsl -d Ubuntu -- sh -lc 'echo ready'
+gh --version
 pwsh --version
+wsl -d Ubuntu -- sh -lc 'echo ready'
 ```
 
 ## AI CLI login
