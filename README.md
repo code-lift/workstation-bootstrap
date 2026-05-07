@@ -55,7 +55,7 @@ Unblock-File "$HOME\install.ps1"
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
-The Windows installer checks Windows apps, WSL support, and WSL Ubuntu. In apply mode it can enable WSL support when PowerShell is running as Administrator.
+The Windows installer checks Windows apps, WSL support, and WSL Ubuntu. In apply mode it opens Administrator PowerShell when elevated changes are needed.
 
 Windows output uses these labels:
 

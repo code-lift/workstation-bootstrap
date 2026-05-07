@@ -51,7 +51,7 @@ Options:
 
 WSL Ubuntu setup:
   Run from Windows PowerShell 5.1 first.
-  -Apply can enable WSL support from an elevated PowerShell session.
+  -Apply opens Administrator PowerShell when WSL support needs elevated changes.
   If a reboot is required, restart Windows and run the same command again.
 
 Environment:
@@ -88,6 +88,53 @@ for ($ArgIndex = 0; $ArgIndex -lt $ParsedRemainingArgs.Count; $ArgIndex++) {
         continue
     }
 }
+
+function Test-Administrator {
+    try {
+        $Identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+        $Principal = New-Object Security.Principal.WindowsPrincipal($Identity)
+        return $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    } catch {
+        return $false
+    }
+}
+
+function Quote-PowerShellLiteral {
+    param([string]$Value)
+    return "'" + ($Value -replace "'", "''") + "'"
+}
+
+function Start-ElevatedApply {
+    if (-not $Apply -or (Test-Administrator)) {
+        return
+    }
+
+    $Command = "& " + (Quote-PowerShellLiteral -Value $PSCommandPath) + " -Apply"
+    if ($Yes) {
+        $Command += " -Yes"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($Optional)) {
+        $Command += " -Optional " + (Quote-PowerShellLiteral -Value $Optional)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($OptionalItems)) {
+        $Command += " -OptionalItems " + (Quote-PowerShellLiteral -Value $OptionalItems)
+    }
+
+    $EncodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Command))
+    Write-Output "[next] Opening Administrator PowerShell for Windows setup."
+    Write-Output "[next] Continue in the new Administrator PowerShell window."
+    Start-Process powershell -Verb RunAs -ArgumentList @(
+        "-NoExit",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-EncodedCommand",
+        $EncodedCommand
+    )
+    exit 0
+}
+
+Start-ElevatedApply
 
 function Save-Bundle {
     param(
