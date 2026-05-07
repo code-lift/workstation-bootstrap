@@ -6,6 +6,7 @@ DEFAULT_SHA256_URL="https://github.com/code-lift/workstation-bootstrap/releases/
 BUNDLE_URL="${WORKSTATION_BUNDLE_URL:-$DEFAULT_BUNDLE_URL}"
 SHA256_URL="${WORKSTATION_SHA256_URL:-}"
 bootstrap_args=()
+APT_UPDATED=false
 
 usage() {
   cat <<'USAGE'
@@ -46,6 +47,50 @@ download_file() {
   fi
 
   echo "curl or wget is required." >&2
+  return 1
+}
+
+run_as_root() {
+  if [[ "$(id -u)" -eq 0 ]]; then
+    "$@"
+    return
+  fi
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo "$@"
+    return
+  fi
+
+  echo "Administrator permission is required for setup prerequisites." >&2
+  echo "Install sudo or run this setup from an administrator/root shell." >&2
+  return 1
+}
+
+apt_install_prerequisite() {
+  local package="$1"
+
+  if ! command -v apt-get >/dev/null 2>&1; then
+    return 1
+  fi
+
+  echo "[run] Installing setup prerequisite: $package" >&2
+  if [[ "$APT_UPDATED" != true ]]; then
+    run_as_root apt-get update
+    APT_UPDATED=true
+  fi
+  run_as_root apt-get install -y "$package"
+}
+
+ensure_downloader() {
+  if command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1; then
+    return
+  fi
+
+  if apt_install_prerequisite curl; then
+    return
+  fi
+
+  echo "curl or wget is required to download the setup bundle." >&2
   return 1
 }
 
@@ -117,6 +162,40 @@ verify_checksum() {
   fi
 }
 
+extract_zip() {
+  local zip_path="$1"
+  local output_dir="$2"
+
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -q "$zip_path" -d "$output_dir"
+    return
+  fi
+
+  if apt_install_prerequisite unzip && command -v unzip >/dev/null 2>&1; then
+    unzip -q "$zip_path" -d "$output_dir"
+    return
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$zip_path" "$output_dir" <<'PY'
+import sys
+import zipfile
+
+zip_path, output_dir = sys.argv[1], sys.argv[2]
+with zipfile.ZipFile(zip_path) as archive:
+    archive.extractall(output_dir)
+PY
+    return
+  fi
+
+  echo "unzip or python3 is required to extract the setup bundle." >&2
+  if command -v apt-get >/dev/null 2>&1; then
+    echo "Install one first, then run this setup again:" >&2
+    echo "  sudo apt-get update && sudo apt-get install -y unzip" >&2
+  fi
+  return 1
+}
+
 detect_bootstrap() {
   case "$(uname -s)" in
     Darwin)
@@ -153,19 +232,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if ! command -v unzip >/dev/null 2>&1; then
-  echo "unzip is required." >&2
-  exit 1
-fi
-
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 zip_path="$tmp_dir/workstation-bootstrap.zip"
 sums_path="$tmp_dir/SHA256SUMS"
+ensure_downloader
 download_file "$BUNDLE_URL" "$zip_path"
 verify_checksum "$zip_path" "$(resolve_sha256_url)" "$sums_path"
-unzip -q "$zip_path" -d "$tmp_dir"
+extract_zip "$zip_path" "$tmp_dir"
 
 bundle_root="$tmp_dir/workstation-bootstrap"
 bootstrap_rel="$(detect_bootstrap)"
