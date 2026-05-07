@@ -220,6 +220,8 @@ Windows apply mode asks for confirmation before changing the machine. Use `-Yes`
 
 Successful package and app installs are recorded under `~/.workstation/logs/install.tsv`. On later runs, the installer uses that log together with a live install check; an item is skipped only when it was previously completed and is still installed.
 
+Apply mode ends with a final installation check. It re-checks the installed packages, command-line tools, language runtimes, terminal settings, and selected optional apps. Items that are ready are printed with `[ok]`; anything still missing is printed with `[warn]`.
+
 ## Optional items
 
 Optional apps are selected interactively in a terminal list. In non-interactive automation, item ids can be passed directly.
