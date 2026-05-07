@@ -1,12 +1,11 @@
 # workstation-bootstrap
 
-Public setup installer for a development workstation. It installs a practical baseline for Windows, WSL Ubuntu, Linux, and macOS, then leaves account login and private credentials to you.
+Public setup installer for a development workstation. It installs a practical baseline for Windows, WSL Ubuntu, Linux, and macOS without storing private credentials.
 
 ## What it does
 
 - Installs core command line tools and package manager entries.
 - Applies selected terminal settings for zsh, tmux, git, search, file preview, and yazi.
-- Installs AI coding tools where they are listed in the setup bundle.
 - Shows optional apps in an interactive list and installs only the items you select.
 - Runs as a preview by default. Nothing is installed unless you pass the apply option.
 
@@ -18,6 +17,85 @@ Public setup installer for a development workstation. It installs a practical ba
 - WSL Ubuntu.
 
 Windows uses separate layers. The default Windows setup installs Windows apps only. The optional WSL Ubuntu setup prepares Ubuntu for the Linux development environment.
+
+## Install matrix
+
+`Core` is installed by the default setup for that platform. `Optional` is shown in the app picker and installed only when selected. `-` means this setup does not install it on that platform.
+
+| Area | Item | macOS | WSL Ubuntu | Linux | Windows |
+| --- | --- | --- | --- | --- | --- |
+| Shell | zsh | Core | Core | Core | - |
+| Terminal sessions | tmux | Core | Core | Core | - |
+| Terminal file manager | yazi | Core | Core | Core | - |
+| Git UI | lazygit | Core | Core | Core | - |
+| YAML tool | yq | Core | Core | Core | - |
+| Shell formatter | shfmt | Core | Core | Core | - |
+| Fast navigation | zoxide | Core | Core | Core | - |
+| System monitor | btop | Core | Core | Core | - |
+| Search | ripgrep, fd, fzf | Core | Core | Core | - |
+| Better output | bat, eza, git-delta | Core | Core | Core | - |
+| Runtime manager | mise | Core | Core | Core | - |
+| Runtime tools | Node, Python, Go, Bun, uv | Core | Core | Core | - |
+| Security checks | gitleaks, shellcheck | Core | Core | Core | - |
+| Terminal settings | Managed shell, tmux, git, yazi settings | Core | Core | Core | - |
+| Windows terminal | Windows Terminal | - | - | - | Core |
+| Windows development | Git for Windows | - | - | - | Optional |
+| Terminal | Ghostty | Optional | - | - | - |
+| Terminal sessions | cmux | Optional | - | - | - |
+| Developer font | JetBrains Mono Nerd Font | Optional | - | - | Optional |
+| Password manager | Bitwarden, 1Password | Optional | - | - | Optional |
+| Browser | Google Chrome, Firefox Developer Edition, Brave | Optional | - | - | Optional |
+| Browser | Microsoft Edge | Optional | - | - | - |
+| Communication | Slack, KakaoTalk, Telegram | Optional | - | - | Optional |
+| Editor or IDE | Google Antigravity, Cursor | Optional | - | - | Optional |
+| AI desktop app | Claude Desktop, Codex | Optional | - | - | Optional |
+| AI CLI | Codex CLI, Claude Code CLI, Gemini CLI | Optional | Optional | Optional | - |
+| Local LLM | LM Studio, Ollama | Optional | - | - | Optional |
+| Notes | Notion, Obsidian | Optional | - | - | Optional |
+| Design | Figma | Optional | - | - | Optional |
+| Design | Framer | Optional | - | - | - |
+| Database GUI | DBeaver Community | Optional | - | - | Optional |
+| Containers | Docker Desktop | Optional | - | - | Optional |
+| macOS productivity | Raycast, Rectangle, Karabiner-Elements | Optional | - | - | - |
+| Windows productivity | Microsoft PowerToys, PowerShell 7 | - | - | - | Optional |
+| Virtual machines | VMware Fusion | Optional | - | - | - |
+
+## Useful commands
+
+These commands are installed or enabled by the core setup on macOS, WSL Ubuntu, and Linux.
+
+| Command | What to use it for |
+| --- | --- |
+| `tmux` | Keep terminal sessions and panes alive while coding. |
+| `y` | Open yazi and return to the directory you selected. |
+| `yazi` | Browse files from the terminal. |
+| `lazygit` | Review Git changes, stage files, commit, and manage branches from a terminal UI. |
+| `yq '.version' file.yaml` | Read a value from YAML. |
+| `yq -i '.enabled = true' file.yaml` | Edit a YAML file in place. |
+| `shfmt -w script.sh` | Format a shell script in place. |
+| `shfmt -d script.sh` | Preview shell formatting changes without writing. |
+| `z <name>` | Jump to a directory you have used before. |
+| `btop` | Check CPU, memory, disk, and process usage. |
+| `rg "text"` | Search code and text quickly. |
+| `fd name` | Find files and folders quickly. |
+| `fzf` | Pick from a fuzzy-search list. |
+| `bat file` | View a file with syntax highlighting. |
+| `eza -la` | List files with cleaner output. |
+| `delta` | View readable Git diffs through the configured Git pager. |
+| `gitleaks detect` | Check a repository for leaked secrets. |
+| `shellcheck script.sh` | Check shell scripts for common bugs. |
+| `mise list` | See installed language runtimes. |
+| `node --version` | Check the active Node.js version. |
+| `python --version` | Check the active Python version. |
+| `go version` | Check the active Go version. |
+
+Optional AI CLI commands are available only when selected during optional setup.
+
+| Command | What to use it for |
+| --- | --- |
+| `codex` | Start an OpenAI Codex terminal coding session. |
+| `claude` | Start a Claude Code terminal coding session. |
+| `gemini` | Start a Gemini CLI terminal coding session. |
 
 ## Quick start
 
@@ -64,7 +142,7 @@ Windows output uses these labels:
 - `[next]` means a later step is required.
 - `[warn]` means the installer could not check or use something in the current shell.
 
-The Windows step installs Windows Terminal by default. Other Windows apps, including Git for Windows and GitHub CLI, are shown as optional items and installed only when selected.
+The Windows step installs Windows Terminal by default. Other Windows apps, including Git for Windows, are shown as optional items and installed only when selected.
 
 Claude Desktop and Codex are also available in the optional Windows app list.
 
@@ -174,6 +252,9 @@ mise --version
 node --version
 tmux -V
 yazi --version
+lazygit --version
+yq --version
+shfmt --version
 test -f "$HOME/.zshrc" && echo "zshrc installed"
 ```
 
@@ -188,16 +269,9 @@ Optional Windows checks:
 
 ```powershell
 git --version
-gh --version
 pwsh --version
 wsl -d Ubuntu -- sh -lc 'echo ready'
 ```
-
-## AI CLI login
-
-AI CLIs are installed as tools only. Sign in after installation using each tool's normal login command.
-
-The installer does not create, copy, or sync tokens, API keys, credentials, or session files.
 
 ## Troubleshooting and logs
 
