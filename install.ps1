@@ -303,7 +303,15 @@ function Save-Bundle {
         return
     }
 
-    Invoke-WebRequest -Uri $Source -OutFile $Destination
+    $downloadSource = $Source
+    if (($Source -eq $DefaultBundleUrl -or $Source -eq $DefaultSha256Url) -and $Source -notmatch '\?') {
+        $downloadSource = "{0}?cache={1}" -f $Source, ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())
+    }
+
+    Invoke-WebRequest -Uri $downloadSource -OutFile $Destination -Headers @{
+        "Cache-Control" = "no-cache"
+        "Pragma" = "no-cache"
+    }
 }
 
 function Resolve-Sha256Url {
