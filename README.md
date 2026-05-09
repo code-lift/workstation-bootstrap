@@ -40,26 +40,27 @@ Windows uses separate layers. The default Windows setup installs Windows apps on
 | Security checks | gitleaks, shellcheck | Core | Core | Core | - |
 | Terminal settings | Managed shell, tmux, git, yazi settings | Core | Core | Core | - |
 | Windows terminal | Windows Terminal | - | - | - | Core |
-| Windows development | Git for Windows | - | - | - | Optional |
-| Terminal | Ghostty | Optional | - | - | - |
-| Terminal sessions | cmux | Optional | - | - | - |
-| Developer font | JetBrains Mono Nerd Font | Optional | - | - | Optional |
-| Password manager | Bitwarden, 1Password | Optional | - | - | Optional |
-| Browser | Google Chrome, Firefox Developer Edition, Brave | Optional | - | - | Optional |
+| Password manager | Bitwarden | Optional | - | - | Optional |
+| Browser | Google Chrome, Firefox Developer Edition | Optional | - | - | Optional |
 | Browser | Microsoft Edge | Optional | - | - | - |
-| Communication | Slack, KakaoTalk, Telegram | Optional | - | - | Optional |
+| Office and documents | ONLYOFFICE Desktop Editors, rhwp | Optional | - | - | Optional |
+| Archive tools | The Unarchiver | Optional | - | - | - |
+| Archive tools | NanaZip | - | - | - | Optional |
+| File transfer | LocalSend | Optional | - | - | Optional |
+| Media | VLC media player | Optional | - | - | Optional |
+| Screen capture | ShareX | - | - | - | Optional |
 | Editor or IDE | Google Antigravity, Cursor | Optional | - | - | Optional |
 | AI desktop app | Claude Desktop, Codex | Optional | - | - | Optional |
 | AI CLI | Codex CLI, Claude Code CLI, Gemini CLI | Optional | Optional | Optional | - |
 | Local LLM | LM Studio, Ollama | Optional | - | - | Optional |
+| Terminal | Ghostty | Optional | - | - | - |
+| Terminal sessions | cmux | Optional | - | - | - |
+| Developer font | JetBrains Mono Nerd Font | Optional | - | - | Optional |
+| Communication | Slack, KakaoTalk, Telegram | Optional | - | - | Optional |
 | Notes | Notion, Obsidian | Optional | - | - | Optional |
-| Design | Figma | Optional | - | - | Optional |
-| Design | Framer | Optional | - | - | - |
-| Database GUI | DBeaver Community | Optional | - | - | Optional |
-| Containers | Docker Desktop | Optional | - | - | Optional |
 | macOS productivity | Raycast, Rectangle, Karabiner-Elements | Optional | - | - | - |
-| Windows productivity | Microsoft PowerToys, PowerShell 7 | - | - | - | Optional |
-| Virtual machines | VMware Fusion | Optional | - | - | - |
+| Windows productivity | Microsoft PowerToys, Everything, PowerShell 7 | - | - | - | Optional |
+| Containers | Docker Desktop | Optional | - | - | Optional |
 
 ## Useful commands
 
@@ -67,30 +68,38 @@ These commands are installed or enabled by the core setup on macOS, WSL Ubuntu, 
 
 | Command | What to use it for |
 | --- | --- |
-| `wst --help` | Show the core command guide after setup. |
-| `wst doctor` | Check whether key terminal commands are available. |
-| `tmux` | Keep terminal sessions and panes alive while coding. |
-| `y` | Open yazi and return to the directory you selected. |
-| `yazi` | Browse files from the terminal. |
-| `lazygit` | Review Git changes, stage files, commit, and manage branches from a terminal UI. |
-| `yq '.version' file.yaml` | Read a value from YAML. |
-| `yq -i '.enabled = true' file.yaml` | Edit a YAML file in place. |
-| `shfmt -w script.sh` | Format a shell script in place. |
-| `shfmt -d script.sh` | Preview shell formatting changes without writing. |
-| `z <name>` | Jump to a directory you have used before. |
-| `btop` | Check CPU, memory, disk, and process usage. |
-| `rg "text"` | Search code and text quickly. |
-| `fd name` | Find files and folders quickly. |
-| `fzf` | Pick from a fuzzy-search list. |
-| `bat file` | View a file with syntax highlighting. |
-| `eza -la` | List files with cleaner output. |
-| `delta` | View readable Git diffs through the configured Git pager. |
-| `gitleaks detect` | Check a repository for leaked secrets. |
-| `shellcheck script.sh` | Check shell scripts for common bugs. |
-| `mise list` | See installed language runtimes. |
+| `wst help` | Show workstation commands and the core command guide. |
+| `wst doctor` | Check core tools and upgrade safety. |
+| `wst preview` | Preview the latest workstation setup after doctor passes. |
+| `wst upgrade` | Apply the latest workstation setup after doctor passes. |
+| `wst diff` | Show direct edits in managed terminal settings. |
+| `wst repair` | Move safe local additions to `.local` files. |
+| `~/.workstation/contract.md` | See managed settings and safe local edit paths. |
+| `tmux new -A -s main` | Keep a durable coding session open. |
+| `yazi` | Browse project files without leaving the terminal. |
+| `lazygit` | Stage, commit, branch, pull, and push faster. |
+| `btop` | Find CPU, memory, disk, or process pressure. |
+| `rg "text"` | Search code fast without opening an editor. |
+| `fd name` | Find files and folders by name. |
+| `bat file` | Read files with highlighting and line numbers. |
+| `z name` | Jump to a folder you use often. |
+| `mkcd dir` | Create a directory and enter it. |
+| `croot` | Jump to the current Git repository root. |
+| `gs` | Show short Git status and current branch. |
+| `gd` | Show unstaged diff. |
+| `gds` | Show staged diff. |
+| `gl` | Show a compact commit graph. |
+| `gitleaks detect` | Scan the repository for exposed credentials. |
+| `shellcheck script.sh` | Catch common shell script bugs. |
+| `shfmt -w script.sh` | Format shell scripts in place. |
+| `jq '.key' file.json` | Read and transform JSON. |
+| `yq '.key' file.yaml` | Read YAML, JSON, TOML, or XML values. |
+| `mise list` | Show installed language runtimes. |
+| `mise use node@22` | Pin a runtime version for the current project. |
 | `node --version` | Check the active Node.js version. |
 | `python --version` | Check the active Python version. |
-| `go version` | Check the active Go version. |
+| `bun --version` | Check the active Bun version. |
+| `uv --version` | Check the active uv version. |
 
 Optional AI CLI commands are available only when selected during optional setup.
 
@@ -145,7 +154,7 @@ Windows output uses these labels:
 - `[next]` means a later step is required.
 - `[warn]` means the installer could not check or use something in the current shell.
 
-The Windows step installs Windows Terminal by default. Other Windows apps, including Git for Windows, are shown as optional items and installed only when selected.
+The Windows step installs Windows Terminal by default. Other Windows apps are shown as optional items and installed only when selected.
 
 Claude Desktop and Codex are also available in the optional Windows app list.
 
@@ -225,17 +234,38 @@ Successful package and app installs are recorded under `~/.workstation/logs/inst
 
 Apply mode ends with a final installation check. It re-checks the installed packages, command-line tools, language runtimes, terminal settings, and selected optional apps. Items that are ready are printed with `[ok]`; anything still missing is printed with `[warn]`. When verification passes, it also prints the next commands to run.
 
-After setup, run `wst --help` any time to see the command guide again. Run `wst doctor` to check key terminal commands from a new shell.
+After setup, run `wst help` any time to see the command guide again. Run `wst doctor` to check core tools and upgrade safety from a new shell.
+
+Managed terminal settings are updated by workstation. Put custom shell, tmux, and Git settings in:
+
+```text
+~/.zshrc.local
+~/.tmux.conf.local
+~/.gitconfig.local
+```
 
 ## Optional items
 
 Optional apps are selected interactively in a terminal list. In non-interactive automation, item ids can be passed directly.
 
+Common optional apps:
+
+| Area | Item | What it is for |
+| --- | --- | --- |
+| Office and documents | ONLYOFFICE Desktop Editors | Free desktop editor for Word, Excel, PowerPoint, and PDF files. |
+| Office and documents | rhwp | Open-source HWP/HWPX tool for Korean document viewing and conversion. |
+| Archive tools | The Unarchiver | macOS archive extractor for RAR, 7z, old ZIP encodings, and uncommon compressed files. |
+| Archive tools | NanaZip | Windows 7-Zip based archiver for ZIP, 7z, RAR, and TAR files. |
+| File transfer | LocalSend | AirDrop-like local file transfer between Windows, macOS, Linux, Android, and iOS. |
+| Media | VLC media player | Free media player that opens most video and audio files without extra codecs. |
+| Screen capture | ShareX | Windows screenshot and screen recording tool with annotation and automation workflows. |
+| Windows productivity | Everything | Instant Windows file search that is much faster than Start search. |
+
 macOS, Linux, or WSL Ubuntu:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --optional container
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --optional-items docker_desktop
+curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --optional-items onlyoffice,rhwp,localsend,vlc
 ```
 
 `--optional` limits the list by category. It does not install a whole category by itself. In preview mode, selected optional items are saved under `~/.workstation/state/<os>-optional.txt`; apply mode shows that saved selection again and lets you add or remove items before the final confirmation.
@@ -248,6 +278,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Apply
 ```
 
 Add the apply option only after the preview output is correct.
+
+Advanced Windows automation can pass item ids directly:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -OptionalItems onlyoffice,rhwp,nanazip,localsend,vlc,sharex,everything_search
+```
 
 ## Post-install verification
 
@@ -275,8 +311,14 @@ winget list --id Microsoft.WindowsTerminal --exact
 Optional Windows checks:
 
 ```powershell
-git --version
 pwsh --version
+winget list --id ONLYOFFICE.DesktopEditors --exact
+winget list --id M2Team.NanaZip --exact
+winget list --id LocalSend.LocalSend --exact
+winget list --id VideoLAN.VLC --exact
+winget list --id ShareX.ShareX --exact
+winget list --id voidtools.Everything --exact
+Test-Path "$HOME\.workstation\bin\rhwp.exe"
 wsl -d Ubuntu -- sh -lc 'echo ready'
 ```
 
