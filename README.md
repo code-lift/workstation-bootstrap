@@ -155,12 +155,12 @@ macOS, Linux, or WSL Ubuntu:
 | `wst doctor` | Check core tools and upgrade safety. |
 | `wst preview` | Preview baseline updates. |
 | `wst upgrade` | Apply baseline updates. |
-| `tmux new -A -s main` | Start or rejoin a persistent terminal session. |
+| `tmux new -A -s <name>` | Start or rejoin a persistent terminal session. |
 | `yazi` | Browse project files in the terminal. |
 | `lazygit` | Use Git from a terminal UI. |
-| `rg "text"` | Search code quickly. |
-| `fd name` | Find files and folders quickly. |
-| `bat file` | Read files with highlighting and line numbers. |
+| `rg "<text>"` | Search code quickly. |
+| `fd <name>` | Find files and folders quickly. |
+| `bat <file>` | Read files with highlighting and line numbers. |
 | `btop` | Inspect CPU, memory, disk, and processes. |
 
 ## Managed Settings
@@ -171,12 +171,11 @@ Managed terminal settings are updated by the installer. Put personal changes in 
 ~/.zshrc.local
 ~/.tmux.conf.local
 ~/.gitconfig.local
-~/.config/ghostty/config.local
 ```
 
 When JetBrains Mono Nerd Font is installed, setup can apply it to supported terminal apps:
 
-- macOS Ghostty uses `~/.config/ghostty/config`.
+- macOS Ghostty uses `~/.config/ghostty/config` when Ghostty is installed.
 - Windows Terminal uses `profiles.defaults.font.face`.
 
 Windows Terminal settings are backed up under:
