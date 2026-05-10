@@ -9,7 +9,7 @@ It runs in preview mode by default. Preview shows the plan and lets you select o
 Core setup:
 
 - Windows: Windows Terminal and the `wst` setup command.
-- macOS, Linux, WSL Ubuntu: shell tools, language runtimes, terminal settings, Git defaults, tmux, yazi, search tools, formatters, and the `wst` command guide.
+- macOS, Linux, WSL Ubuntu: shell tools, language runtimes, terminal settings, Git defaults, GitHub CLI, tmux, yazi, search tools, formatters, and the `wst` command guide.
 - All platforms: selected optional apps are skipped when they are already installed.
 
 Optional app groups include:
@@ -155,6 +155,8 @@ macOS, Linux, or WSL Ubuntu:
 | `wst doctor` | Check core tools and upgrade safety. |
 | `wst preview` | Preview baseline updates. |
 | `wst upgrade` | Apply baseline updates. |
+| `gh auth status` | Check GitHub CLI authentication. |
+| `gh repo view` | Open GitHub repository information from the terminal. |
 | `tmux new -A -s <name>` | Start or rejoin a persistent terminal session. |
 | `yazi` | Browse project files in the terminal. |
 | `lazygit` | Use Git from a terminal UI. |
