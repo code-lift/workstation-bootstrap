@@ -49,14 +49,19 @@ wst upgrade
 Preview:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
 ```
 
 Apply:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
 ```
+
+The `bash -c "$(curl ...)"` form keeps your terminal attached so the
+installer can prompt for the default-shell change. If you script this
+non-interactively, use `--apply --yes` and run `chsh -s "$(command -v zsh)"`
+yourself afterwards (or set `WORKSTATION_SKIP_CHSH=1` to opt out entirely).
 
 ## WSL Ubuntu On Windows
 
@@ -76,8 +81,8 @@ When Ubuntu opens for the first time, create the Ubuntu username and password. A
 Then open Ubuntu and run:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
 ```
 
 ## Output Labels
@@ -102,8 +107,8 @@ wst upgrade
 macOS, Linux, or WSL Ubuntu:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
 ```
 
 The selected optional apps are saved under `~/.workstation/state/`. Apply shows the saved selection again and lets you add or remove items before final confirmation.
@@ -212,7 +217,7 @@ Stop-Transcript
 Capture a macOS, Linux, or WSL Ubuntu log:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash 2>&1 | tee workstation-bootstrap.log
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" 2>&1 | tee workstation-bootstrap.log
 ```
 
 ## Security

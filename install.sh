@@ -14,8 +14,8 @@ Usage:
   install.sh [--apply] [--yes] [setup options...] [--help]
 
 Public usage:
-  curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash
-  curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh | bash -s -- --apply
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
+  bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
 
 Default:
   Preview mode. Downloads the setup bundle and shows what will happen without changing this computer.
