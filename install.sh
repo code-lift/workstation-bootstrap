@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEFAULT_BUNDLE_URL="https://github.com/code-lift/workstation-bootstrap/releases/latest/download/workstation-bootstrap.zip"
-DEFAULT_SHA256_URL="https://github.com/code-lift/workstation-bootstrap/releases/latest/download/SHA256SUMS"
-BUNDLE_URL="${WORKSTATION_BUNDLE_URL:-$DEFAULT_BUNDLE_URL}"
-SHA256_URL="${WORKSTATION_SHA256_URL:-}"
+BOOTSTRAP_REPO="${WST_BOOTSTRAP_REPO:-code-lift/workstation-bootstrap}"
+WORKSTATION_BUNDLE_URL="${WORKSTATION_BUNDLE_URL:-}"
 bootstrap_args=()
 APT_UPDATED=false
 
@@ -13,9 +11,14 @@ usage() {
 Usage:
   install.sh [--apply] [--yes] [setup options...] [--help]
 
-Public usage:
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
-  bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
+Setup (one-time, if not already done):
+  gh auth login
+
+Download and run:
+  gh release download latest --repo code-lift/workstation-bootstrap \
+    --pattern install.sh -D /tmp/ --clobber
+  bash /tmp/install.sh           # preview
+  bash /tmp/install.sh --apply   # apply
 
 Default:
   Preview mode. Downloads the setup bundle and shows what will happen without changing this computer.
@@ -26,28 +29,54 @@ Options:
   --help                  Show this help.
 
 Environment:
-  WORKSTATION_BUNDLE_URL  Override the setup bundle zip URL.
-  WORKSTATION_SHA256_URL  Override the SHA256SUMS URL.
+  WORKSTATION_BUNDLE_URL  Override with a local file:// path for testing.
+  WST_BOOTSTRAP_REPO      Override the bootstrap repository.
 
 USAGE
 }
 
-download_file() {
-  local url="$1"
-  local output="$2"
+ensure_gh_auth() {
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "GitHub CLI (gh) is required to download the setup bundle." >&2
+    echo "Install from: https://cli.github.com" >&2
+    return 1
+  fi
+  if ! gh auth status >/dev/null 2>&1; then
+    echo "GitHub authentication required to download the setup bundle." >&2
+    echo "Run: gh auth login" >&2
+    return 1
+  fi
+}
 
-  if command -v curl >/dev/null 2>&1; then
-    curl -fL "$url" -o "$output"
-    return
+download_bundle() {
+  local zip_path="$1"
+  local sums_path="$2"
+  local output_dir
+  output_dir="$(dirname "$zip_path")"
+
+  if [[ -n "$WORKSTATION_BUNDLE_URL" ]]; then
+    if [[ "$WORKSTATION_BUNDLE_URL" != file://* ]]; then
+      echo "[warn] WORKSTATION_BUNDLE_URL must be a file:// path. Ignoring." >&2
+    else
+      local local_path="${WORKSTATION_BUNDLE_URL#file://}"
+      cp "$local_path" "$zip_path"
+      local local_sums
+      local_sums="$(dirname "$local_path")/SHA256SUMS"
+      if [[ -f "$local_sums" ]]; then cp "$local_sums" "$sums_path"; fi
+      return
+    fi
   fi
 
-  if command -v wget >/dev/null 2>&1; then
-    wget -O "$output" "$url"
-    return
-  fi
-
-  echo "curl or wget is required." >&2
-  return 1
+  ensure_gh_auth || return 1
+  gh release download latest \
+    --repo "$BOOTSTRAP_REPO" \
+    --pattern 'workstation-bootstrap.zip' \
+    --pattern 'SHA256SUMS' \
+    --dir "$output_dir" \
+    --clobber || {
+    echo "Failed to download setup bundle from $BOOTSTRAP_REPO." >&2
+    return 1
+  }
 }
 
 run_as_root() {
@@ -81,64 +110,14 @@ apt_install_prerequisite() {
   run_as_root apt-get install -y "$package"
 }
 
-ensure_downloader() {
-  if command -v curl >/dev/null 2>&1 || command -v wget >/dev/null 2>&1; then
-    return
-  fi
-
-  if apt_install_prerequisite curl; then
-    return
-  fi
-
-  echo "curl or wget is required to download the setup bundle." >&2
-  return 1
-}
-
-resolve_sha256_url() {
-  if [[ -n "$SHA256_URL" ]]; then
-    printf '%s\n' "$SHA256_URL"
-    return
-  fi
-
-  if [[ "$BUNDLE_URL" == "$DEFAULT_BUNDLE_URL" ]]; then
-    printf '%s\n' "$DEFAULT_SHA256_URL"
-    return
-  fi
-
-  if [[ "$BUNDLE_URL" == file://* ]]; then
-    local local_path="${BUNDLE_URL#file://}"
-    local local_sums
-    local_sums="$(dirname "$local_path")/SHA256SUMS"
-    if [[ -f "$local_sums" ]]; then
-      printf '%s\n' "file://$local_sums"
-    fi
-    return
-  fi
-
-  local sibling_url
-  sibling_url="$(dirname "$BUNDLE_URL")/SHA256SUMS"
-  printf '%s\n' "$sibling_url"
-}
-
 verify_checksum() {
   local zip_path="$1"
-  local sums_url="$2"
-  local sums_path="$3"
-  local expected
-  local actual
+  local sums_path="$2"
+  local expected actual
 
-  if [[ -z "$sums_url" ]]; then
-    echo "[warn] Checksum file is not configured. Skipping download verification." >&2
-    return
-  fi
-
-  if ! download_file "$sums_url" "$sums_path"; then
-    if [[ "$BUNDLE_URL" == "$DEFAULT_BUNDLE_URL" || -n "${WORKSTATION_SHA256_URL:-}" ]]; then
-      echo "Failed to download checksum file." >&2
-      return 1
-    fi
-    echo "[warn] Failed to download checksum file. Skipping verification for custom bundle." >&2
-    return
+  if [[ ! -f "$sums_path" ]]; then
+    echo "Checksum file was not included in the release. Cannot verify bundle integrity." >&2
+    return 1
   fi
 
   expected="$(awk '$2 == "workstation-bootstrap.zip" { print $1; exit }' "$sums_path")"
@@ -221,6 +200,10 @@ while [[ $# -gt 0 ]]; do
       bootstrap_args+=("--apply")
       shift
       ;;
+    --yes)
+      bootstrap_args+=("--yes")
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -237,9 +220,8 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 zip_path="$tmp_dir/workstation-bootstrap.zip"
 sums_path="$tmp_dir/SHA256SUMS"
-ensure_downloader
-download_file "$BUNDLE_URL" "$zip_path"
-verify_checksum "$zip_path" "$(resolve_sha256_url)" "$sums_path"
+download_bundle "$zip_path" "$sums_path"
+verify_checksum "$zip_path" "$sums_path"
 extract_zip "$zip_path" "$tmp_dir"
 
 bundle_root="$tmp_dir/workstation-bootstrap"
@@ -251,10 +233,19 @@ if [[ ! -f "$bootstrap_path" ]]; then
   exit 1
 fi
 
+bootstrap_exit=0
 if [[ -t 0 ]]; then
-  bash "$bootstrap_path" "${bootstrap_args[@]}"
+  bash "$bootstrap_path" "${bootstrap_args[@]}" || bootstrap_exit=$?
 elif { : </dev/tty; } 2>/dev/null; then
-  bash "$bootstrap_path" "${bootstrap_args[@]}" </dev/tty
+  bash "$bootstrap_path" "${bootstrap_args[@]}" </dev/tty || bootstrap_exit=$?
 else
-  bash "$bootstrap_path" "${bootstrap_args[@]}"
+  bash "$bootstrap_path" "${bootstrap_args[@]}" || bootstrap_exit=$?
 fi
+
+if [[ ! " ${bootstrap_args[*]} " =~ --apply ]]; then
+  printf '\n'
+  printf 'Next steps\n'
+  printf '[next] bash %s --apply\n' "$0"
+fi
+
+exit "$bootstrap_exit"

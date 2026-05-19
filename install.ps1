@@ -10,10 +10,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$DefaultBundleUrl = "https://github.com/code-lift/workstation-bootstrap/releases/latest/download/workstation-bootstrap.zip"
-$DefaultSha256Url = "https://github.com/code-lift/workstation-bootstrap/releases/latest/download/SHA256SUMS"
-$BundleUrl = if ($env:WORKSTATION_BUNDLE_URL) { $env:WORKSTATION_BUNDLE_URL } else { $DefaultBundleUrl }
-$Sha256Url = if ($env:WORKSTATION_SHA256_URL) { $env:WORKSTATION_SHA256_URL } else { "" }
+$BootstrapRepo = if ($env:WST_BOOTSTRAP_REPO) { $env:WST_BOOTSTRAP_REPO } else { "code-lift/workstation-bootstrap" }
+$WorkstationBundleUrl = if ($env:WORKSTATION_BUNDLE_URL) { $env:WORKSTATION_BUNDLE_URL } else { "" }
 
 try {
     if (Get-Command chcp.com -ErrorAction SilentlyContinue) {
@@ -31,9 +29,11 @@ function Show-Usage {
 Usage:
   powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Yes] [-Wsl] [-Help]
 
-Public usage:
-  cd `$HOME
-  irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "`$HOME\install.ps1"
+Setup (one-time, if not already done):
+  gh auth login
+
+Download and run:
+  gh release download latest --repo code-lift/workstation-bootstrap --pattern install.ps1 -D `$HOME --clobber
   Unblock-File "`$HOME\install.ps1"
   powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1"
   wst preview
@@ -57,8 +57,8 @@ WSL Ubuntu setup:
   If a reboot is required, restart Windows and run the same -Wsl command again.
 
 Environment:
-  WORKSTATION_BUNDLE_URL  Override the setup bundle zip URL.
-  WORKSTATION_SHA256_URL  Override the SHA256SUMS URL.
+  WORKSTATION_BUNDLE_URL  Override with a local file:// path for testing.
+  WST_BOOTSTRAP_REPO      Override the bootstrap repository.
 
 "@
 }
@@ -115,7 +115,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$InstallerUrl = if ($env:WORKSTATION_INSTALLER_URL) { $env:WORKSTATION_INSTALLER_URL } else { "https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1" }
+$BootstrapRepo = if ($env:WST_BOOTSTRAP_REPO) { $env:WST_BOOTSTRAP_REPO } else { "code-lift/workstation-bootstrap" }
 $InstallerPath = Join-Path $HOME "install.ps1"
 
 function Show-Help {
@@ -163,7 +163,15 @@ Windows와 WSL:
 }
 
 function Download-Installer {
-    Invoke-RestMethod $InstallerUrl -OutFile $InstallerPath
+    $TmpDir = Join-Path ([System.IO.Path]::GetTempPath()) ("wst-installer-" + [System.Guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Directory -Path $TmpDir | Out-Null
+    try {
+        & gh release download latest --repo "$BootstrapRepo" --pattern 'install.ps1' --dir "$TmpDir" --clobber
+        if ($LASTEXITCODE -ne 0) { throw "Failed to download installer." }
+        Copy-Item -LiteralPath (Join-Path $TmpDir "install.ps1") -Destination $InstallerPath -Force
+    } finally {
+        if (Test-Path $TmpDir) { Remove-Item -Recurse -Force $TmpDir }
+    }
     if (Get-Command Unblock-File -ErrorAction SilentlyContinue) {
         Unblock-File $InstallerPath
     }
@@ -286,80 +294,57 @@ function Start-ElevatedApply {
 
 Start-ElevatedApply
 
-function Save-Bundle {
-    param(
-        [string]$Source,
-        [string]$Destination
-    )
-
-    if ($Source -match '^file://') {
-        $Uri = [System.Uri]$Source
-        Copy-Item -LiteralPath $Uri.LocalPath -Destination $Destination
-        return
+function Ensure-GhAuth {
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+        throw "GitHub CLI (gh) is required to download the setup bundle. Install from: https://cli.github.com"
     }
-
-    if (Test-Path -LiteralPath $Source) {
-        Copy-Item -LiteralPath $Source -Destination $Destination
-        return
-    }
-
-    $downloadSource = $Source
-    if (($Source -eq $DefaultBundleUrl -or $Source -eq $DefaultSha256Url) -and $Source -notmatch '\?') {
-        $downloadSource = "{0}?cache={1}" -f $Source, ([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())
-    }
-
-    Invoke-WebRequest -Uri $downloadSource -OutFile $Destination -Headers @{
-        "Cache-Control" = "no-cache"
-        "Pragma" = "no-cache"
+    & gh auth status *> $null
+    if ($LASTEXITCODE -ne 0) {
+        throw "GitHub authentication required. Run: gh auth login"
     }
 }
 
-function Resolve-Sha256Url {
-    if (-not [string]::IsNullOrWhiteSpace($Sha256Url)) {
-        return $Sha256Url
-    }
+function Get-Bundle {
+    param(
+        [string]$ZipPath,
+        [string]$SumsPath
+    )
+    $OutputDir = Split-Path -Parent $ZipPath
 
-    if ($BundleUrl -eq $DefaultBundleUrl) {
-        return $DefaultSha256Url
-    }
-
-    if ($BundleUrl -match '^file://') {
-        $Uri = [System.Uri]$BundleUrl
-        $Sibling = Join-Path (Split-Path -Parent $Uri.LocalPath) "SHA256SUMS"
-        if (Test-Path -LiteralPath $Sibling) {
-            return "file://$Sibling"
+    if (-not [string]::IsNullOrWhiteSpace($WorkstationBundleUrl)) {
+        if ($WorkstationBundleUrl -notmatch '^file://') {
+            Write-Warning "WORKSTATION_BUNDLE_URL must be a file:// path. Ignoring."
+        } else {
+            $Uri = [System.Uri]$WorkstationBundleUrl
+            Copy-Item -LiteralPath $Uri.LocalPath -Destination $ZipPath
+            $Sibling = Join-Path (Split-Path -Parent $Uri.LocalPath) "SHA256SUMS"
+            if (Test-Path -LiteralPath $Sibling) {
+                Copy-Item -LiteralPath $Sibling -Destination $SumsPath
+            }
+            return
         }
-        return ""
     }
 
-    try {
-        $Uri = [System.Uri]$BundleUrl
-        return ([System.Uri]::new($Uri, "SHA256SUMS")).AbsoluteUri
-    } catch {
-        return ""
+    Ensure-GhAuth
+    & gh release download latest `
+        --repo $BootstrapRepo `
+        --pattern 'workstation-bootstrap.zip' `
+        --pattern 'SHA256SUMS' `
+        --dir $OutputDir `
+        --clobber
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to download setup bundle."
     }
 }
 
 function Test-BundleChecksum {
     param(
         [string]$ZipPath,
-        [string]$SumsSource,
         [string]$SumsPath
     )
 
-    if ([string]::IsNullOrWhiteSpace($SumsSource)) {
-        Write-Warning "Checksum file is not configured. Skipping download verification."
-        return
-    }
-
-    try {
-        Save-Bundle -Source $SumsSource -Destination $SumsPath
-    } catch {
-        if ($BundleUrl -eq $DefaultBundleUrl -or -not [string]::IsNullOrWhiteSpace($env:WORKSTATION_SHA256_URL)) {
-            throw "Failed to download checksum file."
-        }
-        Write-Warning "Failed to download checksum file. Skipping verification for custom bundle."
-        return
+    if (-not (Test-Path -LiteralPath $SumsPath)) {
+        throw "Checksum file was not included in the release. Cannot verify bundle integrity."
     }
 
     $Expected = $null
@@ -385,11 +370,11 @@ try {
     New-Item -ItemType Directory -Path $TempDir | Out-Null
     $ZipPath = Join-Path $TempDir "workstation-bootstrap.zip"
     $SumsPath = Join-Path $TempDir "SHA256SUMS"
-    Save-Bundle -Source $BundleUrl -Destination $ZipPath
-    Test-BundleChecksum -ZipPath $ZipPath -SumsSource (Resolve-Sha256Url) -SumsPath $SumsPath
+    Get-Bundle -ZipPath $ZipPath -SumsPath $SumsPath
+    Test-BundleChecksum -ZipPath $ZipPath -SumsPath $SumsPath
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
 
-    $BootstrapPath = Join-Path $TempDir "workstation-bootstrap/bootstrap/windows.ps1"
+    $BootstrapPath = Join-Path $TempDir "workstation-bootstrap/bootstrap/windows/bootstrap.ps1"
     if (-not (Test-Path $BootstrapPath)) {
         throw "Windows setup file was not found in the downloaded bundle."
     }
@@ -400,6 +385,21 @@ try {
     if ($Wsl) { $BootstrapParams["Wsl"] = $true }
 
     & $BootstrapPath @BootstrapParams
+
+    if (-not $Apply) {
+        Write-Output ""
+        Write-Output "Next steps"
+        if ($Wsl) {
+            Write-Output "[next] powershell -NoProfile -ExecutionPolicy Bypass -File `"$HOME\install.ps1`" -Apply -Wsl"
+        } else {
+            Write-Output "[next] Open a new terminal"
+            Write-Output "[next] Run: wst upgrade"
+        }
+    } elseif (-not $Wsl) {
+        Write-Output ""
+        Write-Output "Next steps"
+        Write-Output "[next] powershell -NoProfile -ExecutionPolicy Bypass -File `"$HOME\install.ps1`" -Wsl"
+    }
 } finally {
     if (Test-Path $TempDir) {
         Remove-Item -Recurse -Force $TempDir

@@ -1,212 +1,176 @@
 # workstation-bootstrap
 
-Public installer for a practical development workstation baseline on Windows, WSL Ubuntu, Linux, and macOS.
+Workstation setup for macOS, Linux, WSL Ubuntu, and Windows. Installs developer tools, applies shell and editor settings, and installs a `wst` command for ongoing maintenance.
 
-It runs in preview mode by default. Preview shows the plan and lets you select optional apps. Apply installs only the approved items.
+## Platforms
 
-## What It Sets Up
+| Platform | Support |
+|----------|---------|
+| macOS | ✅ |
+| WSL2 Ubuntu | ✅ |
+| Linux | ✅ |
+| Windows 11 | ✅ |
 
-Core setup:
+Windows setup installs Windows-native apps and Windows Terminal. The full developer toolchain (shell, runtimes, CLI tools) runs inside WSL Ubuntu.
 
-- Windows: Windows Terminal and the `wst` setup command.
-- macOS, Linux, WSL Ubuntu: shell tools, language runtimes, terminal settings, Git defaults, GitHub CLI, tmux, yazi, search tools, formatters, and the `wst` command guide.
-- All platforms: selected optional apps are skipped when they are already installed.
+## Prerequisites
 
-Optional app groups include:
+Install [GitHub CLI](https://cli.github.com) if not already available, then authenticate.
 
-- Browsers and password managers.
-- IDEs, AI desktop apps, and optional AI CLI tools.
-- Office, documents, archive tools, media, file transfer, and screen capture.
-- Developer fonts, terminals, notes, communication, local LLM tools, and containers.
+| Platform | Install |
+|----------|---------|
+| macOS ([Homebrew](https://brew.sh) required) | `brew install gh` |
+| WSL Ubuntu / Linux | `sudo apt update && sudo apt install gh -y` |
+| Windows | `winget install --id GitHub.cli` |
 
-Private credentials are not created, read, or synchronized.
+```sh
+gh auth login
+```
 
 ## Quick Start
 
+### macOS / Linux / WSL Ubuntu
+
+```sh
+gh release download latest --repo code-lift/workstation-bootstrap --pattern install.sh -D /tmp/ --clobber && bash /tmp/install.sh
+```
+
+Preview runs by default — nothing is changed. The installer shows what to run next.
+
 ### Windows
 
-Open **Windows PowerShell** and run:
+Run in PowerShell:
 
 ```powershell
-cd $HOME
-irm https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.ps1 -OutFile "$HOME\install.ps1"
-Unblock-File "$HOME\install.ps1"
-powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
+gh release download latest --repo code-lift/workstation-bootstrap --pattern install.ps1 -D $HOME --clobber; Unblock-File "$HOME\install.ps1"; powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
-After the first run, use:
+Preview runs by default — nothing is changed. The installer shows what to run next.
 
-```powershell
-wst preview
-wst upgrade
-```
+### Windows + WSL Ubuntu
 
-`wst preview` downloads the latest installer and shows the Windows app plan.
-`wst upgrade` downloads the latest installer and applies the selected Windows app plan.
-
-### macOS, Linux, or WSL Ubuntu
-
-Preview:
-
-```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
-```
-
-Apply:
-
-```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
-```
-
-The `bash -c "$(curl ...)"` form keeps your terminal attached so the
-installer can prompt for the default-shell change. If you script this
-non-interactively, use `--apply --yes` and run `chsh -s "$(command -v zsh)"`
-yourself afterwards (or set `WORKSTATION_SKIP_CHSH=1` to opt out entirely).
-
-## WSL Ubuntu On Windows
-
-The default Windows setup does not require WSL Ubuntu.
-
-If this computer will also use the Linux development environment, run these commands from Windows PowerShell after the Windows setup:
+After Windows setup, run the WSL preview in PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Wsl
-powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1" -Wsl -Apply
 ```
 
-If Windows asks for a restart, restart Windows and run the same WSL command again.
+Preview runs by default — nothing is changed. The installer shows what to run next.
 
-When Ubuntu opens for the first time, create the Ubuntu username and password. After the Ubuntu prompt appears, return to PowerShell and continue.
+If a restart is required during the apply step, reboot and run the apply command again. When the Ubuntu prompt appears, create your username and password. Once WSL is ready, open Ubuntu and run the macOS / Linux steps above.
 
-Then open Ubuntu and run:
+## What Gets Installed
+
+**Core — macOS, Linux, WSL Ubuntu**
+
+| Tool | Purpose |
+|------|---------|
+| zsh + starship | Shell with prompt |
+| tmux | Terminal multiplexer |
+| mise | Language runtime manager (Node, Python, Go, …) |
+| ripgrep, fd, fzf | Fast search |
+| bat, git-delta | Better pager and diff |
+| yazi | Terminal file manager |
+| gh | GitHub CLI |
+| Claude Code, Codex | AI coding CLIs |
+
+**macOS** — packages managed via `manifests/Brewfile`
+
+**WSL Ubuntu / Linux** — packages managed via `manifests/wsl-packages.txt` / `manifests/linux-packages.txt`
+
+**Windows** — apps managed via `manifests/winget.yaml`
+
+**Optional apps** — selected interactively during setup
+
+Browsers, password managers, IDEs, AI desktop apps, office tools, archive tools, media, screen capture, communication, notes, containers, and local LLM tools. Apps already installed are automatically skipped.
+
+## After Setup
+
+The `wst` command is available on all platforms after bootstrap completes:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
+wst help                # show command guide
+wst help --lang ko      # show guide in Korean
+wst doctor              # check installation health
+wst preview             # preview available updates
+wst upgrade             # apply updates
 ```
+
+## Installer Options
+
+**macOS / Linux / WSL Ubuntu**
+
+| Option | Description |
+|--------|-------------|
+| `--apply` | Apply the setup. Default is preview only. |
+| `--yes` | Skip confirmation prompts. |
+| `--help` | Show usage. |
+
+**Windows**
+
+| Option | Description |
+|--------|-------------|
+| `-Apply` | Apply the setup. Default is preview only. |
+| `-Yes` | Skip confirmation prompts. |
+| `-Wsl` | Provision WSL Ubuntu instead of Windows apps. |
+| `-Help` | Show usage. |
 
 ## Output Labels
 
-- `[ok]` already ready.
-- `[todo]` will be installed or changed during apply.
-- `[skip]` already installed, so no action is needed.
-- `[next]` follow-up command or step.
-- `[warn]` could not be verified in the current shell.
+| Label | Meaning |
+|-------|---------|
+| `[todo]` | Will be installed or changed |
+| `[ok]` | Already installed or configured |
+| `[skip]` | Explicitly skipped |
+| `[warn]` | Needs attention or not available on this platform |
+| `[next]` | Follow-up step to run manually |
+| `[hint]` | Informational suggestion |
 
-## Optional Apps
+## Local Overrides
 
-Optional apps are selected inside the installer. Run preview first, choose the items you want, then run apply.
-
-Windows:
-
-```powershell
-wst preview
-wst upgrade
-```
-
-macOS, Linux, or WSL Ubuntu:
+Managed settings are updated by the installer. Place personal customizations in local files — the installer never overwrites these:
 
 ```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)"
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" -- --apply
+~/.zshrc.local          # shell aliases, exports, functions
+~/.tmux.conf.local      # tmux key bindings and options
+~/.gitconfig.local      # git user, signing, extras
 ```
-
-The selected optional apps are saved under `~/.workstation/state/`. Apply shows the saved selection again and lets you add or remove items before final confirmation.
 
 ## Verify
 
-Windows PowerShell:
-
-```powershell
-winget --version
-winget list --id Microsoft.WindowsTerminal --exact
-wst help
-```
-
-macOS, Linux, or WSL Ubuntu:
-
 ```sh
 wst doctor
-wst help
 git --version
 node --version
 tmux -V
 yazi --version
 ```
 
-Install logs are written to:
-
-```text
-~/.workstation/logs/install.tsv
-```
-
-The log is installation history. Each run still checks the real installed state, so apps removed later are shown as missing again.
-
-## Useful Commands
-
-Windows PowerShell:
-
-| Command | Purpose |
-| --- | --- |
-| `wst preview` | Preview Windows app setup. |
-| `wst upgrade` | Apply Windows app setup. |
-| `wst help` | Show Windows setup command help. |
-
-macOS, Linux, or WSL Ubuntu:
-
-| Command | Purpose |
-| --- | --- |
-| `wst help` | Show the workstation command guide. |
-| `wst doctor` | Check core tools and upgrade safety. |
-| `wst preview` | Preview baseline updates. |
-| `wst upgrade` | Apply baseline updates. |
-| `gh auth status` | Check GitHub CLI authentication. |
-| `gh repo view` | Open GitHub repository information from the terminal. |
-| `tmux new -A -s <name>` | Start or rejoin a persistent terminal session. |
-| `yazi` | Browse project files in the terminal. |
-| `lazygit` | Use Git from a terminal UI. |
-| `rg "<text>"` | Search code quickly. |
-| `fd <name>` | Find files and folders quickly. |
-| `bat <file>` | Read files with highlighting and line numbers. |
-| `btop` | Inspect CPU, memory, disk, and processes. |
-
-## Managed Settings
-
-Managed terminal settings are updated by the installer. Put personal changes in local files:
-
-```text
-~/.zshrc.local
-~/.tmux.conf.local
-~/.gitconfig.local
-```
-
-When JetBrains Mono Nerd Font is installed, setup can apply it to supported terminal apps:
-
-- macOS Ghostty uses `~/.config/ghostty/config` when Ghostty is installed.
-- Windows Terminal uses `profiles.defaults.font.face`.
-
-Windows Terminal settings are backed up under:
-
-```text
-~/.workstation/backups/windows-terminal/
-```
+Install history is written to `~/.workstation/logs/install.tsv`.
 
 ## Troubleshooting
 
-If Windows blocks the downloaded script:
+**Windows: script is blocked**
 
 ```powershell
 Unblock-File "$HOME\install.ps1"
 ```
 
-If PowerShell policy blocks the script:
+**Windows: execution policy blocks the script**
 
 ```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 ```
 
-Capture a Windows log:
+**Capture a log for debugging**
+
+macOS / Linux / WSL Ubuntu:
+
+```sh
+bash /tmp/install.sh 2>&1 | tee ~/workstation-bootstrap.log
+```
+
+Windows PowerShell:
 
 ```powershell
 Start-Transcript -Path .\workstation-bootstrap.log
@@ -214,15 +178,39 @@ wst preview
 Stop-Transcript
 ```
 
-Capture a macOS, Linux, or WSL Ubuntu log:
+## Bundle Contents
 
-```sh
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/code-lift/workstation-bootstrap/main/install.sh)" 2>&1 | tee workstation-bootstrap.log
+The release zip (`workstation-bootstrap.zip`) contains plain, readable source files — no obfuscation or binary blobs:
+
 ```
+workstation-bootstrap/
+├── install.sh                    macOS / Linux / WSL installer
+├── install.ps1                   Windows installer
+├── bootstrap/
+│   ├── core.sh                   shared bootstrap logic
+│   ├── macos.sh                  macOS entry point
+│   ├── linux.sh                  Linux entry point
+│   ├── wsl.sh                    WSL Ubuntu entry point
+│   ├── lib/                      ui, state, packages, catalog, verify modules
+│   └── windows/
+│       ├── bootstrap.ps1
+│       └── sharex/               ShareX clipboard preset
+├── dotfiles/                     chezmoi source state (shell, tmux, git, terminal)
+├── manifests/
+│   ├── Brewfile                  Homebrew packages (macOS)
+│   ├── winget.yaml               Windows apps
+│   ├── linux-packages.txt        apt packages (Linux)
+│   ├── wsl-packages.txt          apt packages (WSL Ubuntu)
+│   ├── mise.toml                 language runtimes
+│   └── catalog.yaml              optional app definitions
+└── scripts/
+    ├── validate-dotfiles.js
+    └── validate-catalog.js
+```
+
+The installer verifies the bundle against `SHA256SUMS` before extracting.
 
 ## Security
 
-- Review the installer before applying it.
-- The bundle contains plain source files.
-- The installer verifies the release bundle against `SHA256SUMS` when the checksum file is available.
-- Private credentials and account sessions are not managed.
+- Review the installer before running it.
+- Private credentials and account sessions are not managed or synchronized.
