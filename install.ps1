@@ -3,6 +3,7 @@ param(
     [switch]$Yes,
     [switch]$Wsl,
     [switch]$Help,
+    [string]$Version = "latest",
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$RemainingArgs
 )
@@ -27,7 +28,7 @@ try {
 function Show-Usage {
     Write-Output @"
 Usage:
-  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Yes] [-Wsl] [-Help]
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1" [-Apply] [-Yes] [-Wsl] [-Version <tag>] [-Help]
 
 Setup (one-time, if not already done):
   gh auth login
@@ -39,6 +40,11 @@ Download and run:
   wst preview
   wst upgrade
 
+Inspect first:
+  gh release download latest --repo code-lift/workstation-bootstrap --pattern install.ps1 -D `$HOME --clobber
+  Get-Content "`$HOME\install.ps1" | more
+  powershell -NoProfile -ExecutionPolicy Bypass -File "`$HOME\install.ps1"
+
 Default:
   Preview mode. Downloads the setup bundle and shows what will happen without changing this computer.
 
@@ -46,6 +52,7 @@ Options:
   -Apply          Apply the selected setup.
   -Yes            Skip the apply confirmation prompt for automation.
   -Wsl            Prepare WSL Ubuntu instead of Windows apps.
+  -Version <tag>  Install a specific release (e.g. v1.0.0). Default: latest.
   -Help           Show this help.
 
 Installed Windows command:
@@ -307,7 +314,8 @@ function Ensure-GhAuth {
 function Get-Bundle {
     param(
         [string]$ZipPath,
-        [string]$SumsPath
+        [string]$SumsPath,
+        [string]$Version = "latest"
     )
     $OutputDir = Split-Path -Parent $ZipPath
 
@@ -326,14 +334,14 @@ function Get-Bundle {
     }
 
     Ensure-GhAuth
-    & gh release download latest `
-        --repo $BootstrapRepo `
+    & gh release download "$Version" `
+        --repo "$BootstrapRepo" `
         --pattern 'workstation-bootstrap.zip' `
         --pattern 'SHA256SUMS' `
         --dir $OutputDir `
         --clobber
     if ($LASTEXITCODE -ne 0) {
-        throw "Failed to download setup bundle."
+        throw "Failed to download release '$Version' from '$BootstrapRepo'. Check available releases: gh release list --repo $BootstrapRepo"
     }
 }
 
@@ -370,7 +378,7 @@ try {
     New-Item -ItemType Directory -Path $TempDir | Out-Null
     $ZipPath = Join-Path $TempDir "workstation-bootstrap.zip"
     $SumsPath = Join-Path $TempDir "SHA256SUMS"
-    Get-Bundle -ZipPath $ZipPath -SumsPath $SumsPath
+    Get-Bundle -ZipPath $ZipPath -SumsPath $SumsPath -Version $Version
     Test-BundleChecksum -ZipPath $ZipPath -SumsPath $SumsPath
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
 

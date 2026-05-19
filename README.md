@@ -37,6 +37,22 @@ gh release download latest --repo code-lift/workstation-bootstrap --pattern inst
 
 Preview runs by default — nothing is changed. The installer shows what to run next.
 
+**Install a specific version (broken latest rescue)**
+
+```sh
+bash /tmp/install.sh --version v1.0.0
+```
+
+**Inspect before running**
+
+```sh
+gh release download latest \
+  --repo code-lift/workstation-bootstrap \
+  --pattern install.sh -D /tmp/ --clobber
+less /tmp/install.sh
+bash /tmp/install.sh --apply
+```
+
 ### Windows
 
 Run in PowerShell:

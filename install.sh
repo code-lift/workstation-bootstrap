@@ -3,13 +3,14 @@ set -euo pipefail
 
 BOOTSTRAP_REPO="${WST_BOOTSTRAP_REPO:-code-lift/workstation-bootstrap}"
 WORKSTATION_BUNDLE_URL="${WORKSTATION_BUNDLE_URL:-}"
+WST_RELEASE="latest"
 bootstrap_args=()
 APT_UPDATED=false
 
 usage() {
   cat <<'USAGE'
 Usage:
-  install.sh [--apply] [--yes] [setup options...] [--help]
+  install.sh [--apply] [--yes] [--version <tag>] [setup options...] [--help]
 
 Setup (one-time, if not already done):
   gh auth login
@@ -20,12 +21,19 @@ Download and run:
   bash /tmp/install.sh           # preview
   bash /tmp/install.sh --apply   # apply
 
+Inspect first:
+  gh release download latest --repo code-lift/workstation-bootstrap \
+    --pattern install.sh -D /tmp/ --clobber
+  less /tmp/install.sh
+  bash /tmp/install.sh --apply
+
 Default:
   Preview mode. Downloads the setup bundle and shows what will happen without changing this computer.
 
 Options:
   --apply                 Apply the selected setup.
   --yes                   Pass through automation confirmation.
+  --version <tag>         Install a specific release (e.g. v1.0.0). Default: latest.
   --help                  Show this help.
 
 Environment:
@@ -68,13 +76,14 @@ download_bundle() {
   fi
 
   ensure_gh_auth || return 1
-  gh release download latest \
+  gh release download "$WST_RELEASE" \
     --repo "$BOOTSTRAP_REPO" \
     --pattern 'workstation-bootstrap.zip' \
     --pattern 'SHA256SUMS' \
     --dir "$output_dir" \
     --clobber || {
-    echo "Failed to download setup bundle from $BOOTSTRAP_REPO." >&2
+    echo "Failed to download release '${WST_RELEASE}' from ${BOOTSTRAP_REPO}." >&2
+    echo "Check available releases: gh release list --repo ${BOOTSTRAP_REPO}" >&2
     return 1
   }
 }
@@ -202,6 +211,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --yes)
       bootstrap_args+=("--yes")
+      shift
+      ;;
+    --version)
+      WST_RELEASE="$2"
+      shift 2
+      ;;
+    --version=*)
+      WST_RELEASE="${1#*=}"
       shift
       ;;
     --help|-h)
