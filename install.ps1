@@ -382,7 +382,7 @@ try {
     Test-BundleChecksum -ZipPath $ZipPath -SumsPath $SumsPath
     Expand-Archive -Path $ZipPath -DestinationPath $TempDir -Force
 
-    $BootstrapPath = Join-Path $TempDir "workstation-bootstrap/bootstrap/windows/bootstrap.ps1"
+    $BootstrapPath = Join-Path $TempDir "workstation-bootstrap/bootstrap/windows.ps1"
     if (-not (Test-Path $BootstrapPath)) {
         throw "Windows setup file was not found in the downloaded bundle."
     }
