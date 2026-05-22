@@ -32,7 +32,7 @@ gh auth login
 ### macOS / Linux / WSL Ubuntu
 
 ```sh
-gh release download latest --repo code-lift/workstation-bootstrap --pattern install.sh -D /tmp/ --clobber && bash /tmp/install.sh
+gh release download latest --repo code-lift/workstation-bootstrap -p install.sh -O - | bash
 ```
 
 Preview runs by default — nothing is changed. The installer shows what to run next.
@@ -40,15 +40,13 @@ Preview runs by default — nothing is changed. The installer shows what to run 
 **Install a specific version (broken latest rescue)**
 
 ```sh
-bash /tmp/install.sh --version v1.0.0
+gh release download latest --repo code-lift/workstation-bootstrap -p install.sh -O - | bash -s -- --version v1.0.0
 ```
 
 **Inspect before running**
 
 ```sh
-gh release download latest \
-  --repo code-lift/workstation-bootstrap \
-  --pattern install.sh -D /tmp/ --clobber
+gh release download latest --repo code-lift/workstation-bootstrap -p install.sh -O /tmp/install.sh
 less /tmp/install.sh
 bash /tmp/install.sh --apply
 ```
@@ -77,18 +75,21 @@ If a restart is required during the apply step, reboot and run the apply command
 
 ## What Gets Installed
 
-**Core — macOS, Linux, WSL Ubuntu**
+**Default — macOS, Linux, WSL Ubuntu**
 
 | Tool | Purpose |
 |------|---------|
 | zsh + starship | Shell with prompt |
 | tmux | Terminal multiplexer |
-| mise | Language runtime manager (Node, Python, Go, …) |
+| chezmoi | Dotfiles manager |
+| mise | Language runtime manager (Node, Python, Bun, …) |
 | ripgrep, fd, fzf | Fast search |
 | bat, git-delta | Better pager and diff |
+| eza, zoxide | Modern ls and cd |
+| lazygit | Git TUI |
+| direnv | Per-project environment loader |
 | yazi | Terminal file manager |
 | gh | GitHub CLI |
-| Claude Code, Codex | AI coding CLIs |
 
 **macOS** — packages managed via `manifests/Brewfile`
 
@@ -183,7 +184,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\install.ps1"
 macOS / Linux / WSL Ubuntu:
 
 ```sh
-bash /tmp/install.sh 2>&1 | tee ~/workstation-bootstrap.log
+gh release download latest --repo code-lift/workstation-bootstrap -p install.sh -O - | bash 2>&1 | tee ~/workstation-bootstrap.log
 ```
 
 Windows PowerShell:
@@ -209,19 +210,16 @@ workstation-bootstrap/
 │   ├── wsl.sh                    WSL Ubuntu entry point
 │   ├── lib/                      ui, state, packages, catalog, verify modules
 │   └── windows/
-│       ├── bootstrap.ps1
+│       ├── windows.ps1
 │       └── sharex/               ShareX clipboard preset
 ├── dotfiles/                     chezmoi source state (shell, tmux, git, terminal)
-├── manifests/
-│   ├── Brewfile                  Homebrew packages (macOS)
-│   ├── winget.yaml               Windows apps
-│   ├── linux-packages.txt        apt packages (Linux)
-│   ├── wsl-packages.txt          apt packages (WSL Ubuntu)
-│   ├── mise.toml                 language runtimes
-│   └── catalog.yaml              optional app definitions
-└── scripts/
-    ├── validate-dotfiles.js
-    └── validate-catalog.js
+└── manifests/
+    ├── Brewfile                  Homebrew packages (macOS)
+    ├── winget.yaml               Windows apps
+    ├── linux-packages.txt        apt packages (Linux)
+    ├── wsl-packages.txt          apt packages (WSL Ubuntu)
+    ├── mise.toml                 language runtimes
+    └── catalog.yaml              optional app definitions
 ```
 
 The installer verifies the bundle against `SHA256SUMS` before extracting.
