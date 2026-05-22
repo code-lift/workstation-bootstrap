@@ -221,7 +221,7 @@ while [[ $# -gt 0 ]]; do
       WST_RELEASE="${1#*=}"
       shift
       ;;
-    --help|-h)
+    --help | -h)
       usage
       exit 0
       ;;
